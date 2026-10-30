@@ -44,6 +44,27 @@ export function initStageChrome(stage, store) {
     if (setting) store.set({ [setting]: e.target.checked });
   });
 
+  // --- full screen on computers: a side panel with the size and objects cards. They move in from
+  // the page while it's open (so every control keeps working) and back to their places after. ---
+  const drawerButton = stage.querySelector('#drawer-button');
+  const drawer = stage.querySelector('#stage-drawer');
+  const cards = ['controls', 'compare'].map(id => document.getElementById(id));
+  const homes = cards.map(card => card.parentNode.insertBefore(document.createComment(card.id), card));
+  const labelDrawer = () => {
+    const label = t(drawer.hidden ? 'drawer.open' : 'drawer.close');
+    drawerButton.setAttribute('aria-label', label);
+    drawerButton.title = label;
+  };
+  const setDrawer = open => {
+    if (open === !drawer.hidden) return;
+    if (open) drawer.append(...cards);
+    else cards.forEach((card, i) => homes[i].after(card));
+    drawer.hidden = !open;
+    drawerButton.setAttribute('aria-expanded', String(open));
+    labelDrawer();
+  };
+  drawerButton.addEventListener('click', () => setDrawer(drawer.hidden));
+
   // --- full screen: the real thing where supported, a full-window stage elsewhere (iPhone) ---
   const isFull = () => document.fullscreenElement === stage || stage.classList.contains('is-expanded');
   const setExpanded = on => {
@@ -56,6 +77,8 @@ export function initStageChrome(stage, store) {
     stage.classList.toggle('is-full', full);
     fullscreenButton.setAttribute('aria-label', t(full ? 'fullscreen.exit' : 'fullscreen.enter'));
     fullscreenButton.title = t(full ? 'fullscreen.exitTitle' : 'fullscreen.enter');
+    if (!full) setDrawer(false);
+    labelDrawer();
   };
   fullscreenButton.addEventListener('click', () => {
     if (document.fullscreenElement) return document.exitFullscreen();

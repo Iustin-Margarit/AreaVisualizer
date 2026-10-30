@@ -30,6 +30,15 @@
     try { theme = JSON.parse(localStorage.getItem('areavisualizer:prefs'))?.theme; } catch {}
     const dark = theme === 'dark' || (theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
     document.documentElement.dataset.mode = dark ? 'dark' : 'light';
+    // The opening splash (.intro-splash): once per visit (a new tab, a followed link), never on a
+    // reload or going back, and not for people who prefer less motion.
+    try {
+      const fresh = performance.getEntriesByType('navigation')[0]?.type === 'navigate';
+      if (fresh && !sessionStorage.getItem('areavisualizer:intro') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('intro');
+        sessionStorage.setItem('areavisualizer:intro', '1');
+      }
+    } catch {}
   </script>
   <link rel="stylesheet" href="css/styles.css">
   <!-- three.js for the 3D view: our own copy (tools/vendor.mjs), only downloaded when someone
@@ -45,6 +54,18 @@
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
+  <!-- Opening splash: the logo draws itself, one square lights up, the name slides in. -->
+  <div class="intro-splash" aria-hidden="true">
+    <svg class="intro-logo" viewBox="0 0 32 32">
+      <rect class="frame" x="3" y="3" width="26" height="26" rx="7" pathLength="1"/>
+      <path class="line" d="M11.7 3v26" pathLength="1"/>
+      <path class="line" d="M20.3 3v26" pathLength="1"/>
+      <path class="line" d="M3 11.7h26" pathLength="1"/>
+      <path class="line" d="M3 20.3h26" pathLength="1"/>
+      <rect class="cell" x="12.4" y="12.4" width="7.2" height="7.2" rx="1.2"/>
+    </svg>
+    <strong class="intro-name">AreaVisualizer</strong>
+  </div>
   <!-- Text follows the visitor's language: data-i18n sets an element's text, data-i18n-attr sets
        attributes ("title:key;aria-label:key"). The keys are in js/i18n/en.js. -->
   <header class="header">
@@ -153,7 +174,15 @@
         <!-- Phones: a strip down each side scrolls the page, so the view never traps you. -->
         <div class="scroll-edge" aria-hidden="true"></div>
         <div class="scroll-edge right" aria-hidden="true"></div>
-        <div id="view-toggle" class="pill-toggle" role="group" data-i18n-attr="aria-label:view.group"></div>
+        <!-- Full screen on computers: opens a side panel with the size and objects cards. -->
+        <aside id="stage-drawer" class="stage-drawer" hidden></aside>
+        <div class="stage-start">
+          <button id="drawer-button" class="tool drawer-button" type="button" aria-expanded="false" aria-controls="stage-drawer">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M8 4v12"/></svg>
+            <span data-i18n="drawer.menu">Menu</span>
+          </button>
+          <div id="view-toggle" class="pill-toggle" role="group" data-i18n-attr="aria-label:view.group"></div>
+        </div>
         <div class="chrome-actions">
           <button id="settings-button" class="tool" type="button" data-i18n-attr="aria-label:settings.title;title:settings.title" aria-expanded="false" aria-controls="settings-panel">
             <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h7M14 6h3M3 14h3M10 14h7"/><circle cx="12" cy="6" r="2"/><circle cx="8" cy="14" r="2"/></svg>
