@@ -78,6 +78,7 @@ export default {
     'cmp.times': '≈ {n}× {name}',
 
     'stage.label': 'Visualisation',
+    'stage.loading': 'Chargement…',
     'view.group': 'Vue',
     'view.failed': 'La vue {view} n’a pas pu démarrer sur cet appareil.',
     'view.offline': 'La vue {view} n’a pas pu démarrer : vous semblez hors ligne.',
@@ -105,7 +106,7 @@ export default {
     'zoom.fitTitle': 'Tout afficher (0)',
     'hint.2dTouch': 'Glissez pour déplacer · pincez pour zoomer',
     'hint.2dMouse': 'Glissez pour déplacer · molette ou double-clic pour zoomer',
-    'hint.3dTouch': 'Glissez pour tourner · pincez pour zoomer · deux doigts pour déplacer',
+    'hint.3dTouch': 'Glissez pour tourner · pincez pour zoomer · deux doigts pour déplacer ou pivoter',
     'hint.3dMouse': 'Glissez pour tourner · clic droit pour déplacer · molette pour zoomer',
     'legend.square': 'Chaque carré : {side} × {side}',
     'camera.label': 'Caméra',
