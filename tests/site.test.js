@@ -6,7 +6,9 @@ const read = path => readFileSync(new URL(`../${path}`, import.meta.url));
 
 test('the page loads nothing from other sites (no visitor data goes to third parties)', () => {
   const html = read('index.html').toString();
-  const external = [...html.matchAll(/<(?:script|link|img)\b[^>]*\b(?:src|href)="(https?:[^"]*)"/g)].map(m => m[1]);
+  const external = [...html.matchAll(/<(?:script|link|img)\b[^>]*\b(?:src|href)="(https?:[^"]*)"[^>]*>/g)]
+    .filter(m => !m[0].includes('rel="canonical"')) // names the official address, loads nothing
+    .map(m => m[1]);
   assert.deepEqual(external, []);
   const { imports } = JSON.parse(html.match(/<script type="importmap">([\s\S]*?)<\/script>/)[1]);
   for (const url of Object.values(imports)) assert.ok(url.startsWith('./'), `import map points outside: ${url}`);
