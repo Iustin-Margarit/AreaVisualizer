@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f4f6f9">
+  <title>AreaVisualizer: see how big an area really is</title>
+  <meta name="description" content="See how big an area really is: type m², ft², acres or the sides and compare it with people, cars, buildings and famous places in 2D or 3D.">
+  <meta property="og:title" content="AreaVisualizer: see how big an area really is">
+  <meta property="og:description" content="Type an area and compare it with people, cars, buildings and famous places in 2D or 3D. No sign-up.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='3' width='26' height='26' rx='6' fill='%232563eb'/%3E%3Cpath d='M11.7 3v26M20.3 3v26M3 11.7h26M3 20.3h26' stroke='%23fff' stroke-opacity='.45' stroke-width='1.5'/%3E%3C/svg%3E">
+  <!-- Pick light or dark (remembered choice, else the system's) before the first paint. -->
+  <script>
+    let theme;
+    try { theme = JSON.parse(localStorage.getItem('areavisualizer:prefs'))?.theme; } catch {}
+    const dark = theme === 'dark' || (theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.dataset.mode = dark ? 'dark' : 'light';
+  </script>
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- three.js for the 3D view: our own copy (tools/vendor.mjs), only downloaded when someone
+       opens 3D. Everything the page loads comes from this site. -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/build/three.module.min.js",
+        "three/addons/": "./vendor/three/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <!-- Text follows the visitor's language: data-i18n sets an element's text, data-i18n-attr sets
+       attributes ("title:key;aria-label:key"). The keys are in js/i18n/en.js. -->
+  <header class="header">
+    <a class="brand" href="./" data-i18n-attr="aria-label:home">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="3" y="3" width="26" height="26" rx="7"/>
+        <path d="M11.7 3v26M20.3 3v26M3 11.7h26M3 20.3h26"/>
+      </svg>
+      <span>
+        <strong>AreaVisualizer</strong>
+        <small data-i18n="tagline">See how big an area really is</small>
+      </span>
+    </a>
+    <div class="header-actions">
+      <div id="units-toggle" class="segmented compact units-toggle" role="group" data-i18n-attr="aria-label:units.group">
+        <button type="button" data-units="metric" data-i18n="units.metric" data-i18n-attr="title:units.metricTitle">Metric</button>
+        <button type="button" data-units="imperial" data-i18n="units.imperial" data-i18n-attr="title:units.imperialTitle">Imperial</button>
+        <button type="button" data-units="both" data-i18n="units.both" data-i18n-attr="title:units.bothTitle">Both</button>
+      </div>
+      <div class="lang-menu">
+        <button type="button" class="lang-button" aria-expanded="false" aria-controls="language-panel">
+          <span class="lang-flag"></span>
+          <span class="lang-code" aria-hidden="true">EN</span>
+          <svg class="chevron" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg>
+        </button>
+        <div id="language-panel" class="popover lang-panel" role="dialog" data-i18n-attr="aria-label:language" hidden>
+          <p class="label lang-title" data-i18n="language">Language</p>
+          <ul class="lang-list"></ul>
+        </div>
+      </div>
+      <button id="theme-toggle" class="icon-button" type="button">
+        <svg class="icon-moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 12.6A7 7 0 017.4 3.5a7 7 0 109.1 9.1z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6"/><path d="M10 1.5v2.2M10 16.3v2.2M1.5 10h2.2M16.3 10h2.2M4 4l1.6 1.6M14.4 14.4L16 16M4 16l1.6-1.6M14.4 5.6L16 4"/></svg>
+      </button>
+      <button id="share" class="share" type="button">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 9.5l3-3M7 4.5l1.2-1.2a2.8 2.8 0 014 4L11 8.5M9 11.5l-1.2 1.2a2.8 2.8 0 01-4-4L5 7.5"/></svg>
+        <span class="share-label" data-i18n="share.copy">Copy link</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <form id="controls" class="card size-card" autocomplete="off">
+      <div class="card-head">
+        <div class="card-head-title">
+          <h2 class="card-title" data-i18n="size.title">Size</h2>
+          <button type="button" id="reset-size" class="reset-button" data-i18n-attr="title:size.resetTitle">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8a4.5 4.5 0 101.3-3.2"/><path d="M3.5 2.5v2.8h2.8"/></svg><span data-i18n="size.reset">Reset</span>
+          </button>
+        </div>
+        <div id="shape-picker" class="segmented compact" role="group" data-i18n-attr="aria-label:shape.group">
+          <button type="button" data-shape="rectangle" data-i18n-attr="title:shape.rectangleTitle"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="5" width="14" height="10" rx="1.5"/></svg><span data-i18n="shape.rectangle">Rectangle</span></button>
+          <button type="button" data-shape="circle" data-i18n-attr="title:shape.circle"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/></svg><span data-i18n="shape.circle">Circle</span></button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="dim-width" id="sides-label">Width × length</label>
+        <div class="input-group sides">
+          <input id="dim-width" type="text" inputmode="decimal" enterkeyhint="next" spellcheck="false">
+          <span class="times" aria-hidden="true">×</span>
+          <input id="dim-length" type="text" inputmode="decimal" enterkeyhint="done" spellcheck="false" data-i18n-attr="aria-label:sides.length">
+          <select id="length-unit" data-i18n-attr="aria-label:sides.unit"></select>
+        </div>
+        <p class="alt-line" id="sides-alt" hidden></p>
+      </div>
+
+      <div class="field result-field">
+        <label for="area-value" data-i18n="area.label">Area</label>
+        <div class="input-group area-group">
+          <span class="equals" aria-hidden="true">=</span>
+          <input id="area-value" type="text" inputmode="decimal" enterkeyhint="done" spellcheck="false">
+          <select id="area-unit" data-i18n-attr="aria-label:area.unit"></select>
+        </div>
+        <p class="alt-line" id="area-alt" hidden></p>
+      </div>
+      <p class="field-hint" data-i18n="size.hint">Type the sides to get the area — or type the area to get the sides.</p>
+
+      <div class="field height-field">
+        <button type="button" id="add-height" class="add-button">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg><span data-i18n="height.add">Add height</span>
+        </button>
+        <div class="field-head" id="height-head" hidden>
+          <label for="dim-height" data-i18n="height.label">Height</label>
+          <button type="button" id="remove-height" class="link-button" data-i18n="height.remove">Remove</button>
+        </div>
+        <div class="input-group" id="height-group" hidden>
+          <input id="dim-height" type="text" inputmode="decimal" enterkeyhint="done" spellcheck="false">
+          <select id="height-unit" data-i18n-attr="aria-label:height.unit"></select>
+        </div>
+        <p class="alt-line" id="height-alt" hidden></p>
+        <p class="volume-line" id="volume" aria-live="polite" hidden></p>
+      </div>
+
+      <div class="field">
+        <span class="label" data-i18n="presets">Quick picks</span>
+        <div id="presets" class="chips"></div>
+      </div>
+    </form>
+
+    <section id="stage" class="stage" data-i18n-attr="aria-label:stage.label">
+      <div class="stage-chrome">
+        <div id="view-toggle" class="pill-toggle" role="group" data-i18n-attr="aria-label:view.group"></div>
+        <div class="chrome-actions">
+          <button id="settings-button" class="tool" type="button" data-i18n-attr="aria-label:settings.title;title:settings.title" aria-expanded="false" aria-controls="settings-panel">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h7M14 6h3M3 14h3M10 14h7"/><circle cx="12" cy="6" r="2"/><circle cx="8" cy="14" r="2"/></svg>
+          </button>
+          <button id="fullscreen-button" class="tool" type="button">
+            <svg class="icon-expand" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8V3h5M12 3h5v5M17 12v5h-5M8 17H3v-5"/></svg>
+            <svg class="icon-collapse" viewBox="0 0 20 20" aria-hidden="true"><path d="M8 3v5H3M17 8h-5V3M12 17v-5h5M3 12h5v5"/></svg>
+          </button>
+        </div>
+        <div id="settings-panel" class="popover settings" role="dialog" data-i18n-attr="aria-label:settings.title" hidden>
+          <div class="popover-row">
+            <span class="label" data-i18n="settings.theme">Theme</span>
+            <div class="segmented compact" data-setting="theme" role="group" data-i18n-attr="aria-label:settings.theme">
+              <button type="button" data-value="auto" data-i18n="settings.auto">Auto</button>
+              <button type="button" data-value="light" data-i18n="settings.light">Light</button>
+              <button type="button" data-value="dark" data-i18n="settings.dark">Dark</button>
+            </div>
+          </div>
+          <label class="switch"><input type="checkbox" data-setting="grid"><span data-i18n="settings.grid">Grid</span></label>
+          <label class="switch"><input type="checkbox" data-setting="measures"><span data-i18n="settings.measures">Measurements</span></label>
+          <label class="switch"><input type="checkbox" data-setting="labels"><span data-i18n="settings.labels">Labels</span></label>
+          <label class="switch"><input type="checkbox" data-setting="shadows"><span><span data-i18n="settings.shadows">Shadows</span> <small>3D</small></span></label>
+          <div class="popover-row">
+            <span class="label" data-i18n="settings.color">Area colour</span>
+            <div class="swatches" data-setting="color" role="group" data-i18n-attr="aria-label:settings.color"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="compare" class="card compare-card" data-i18n-attr="aria-label:compare.title"></section>
+
+    <section id="results" class="card results" aria-live="polite"></section>
+  </main>
+
+  <footer class="footer">
+    <p data-i18n="footer.note">No sign-up, no tracking. Sizes of everyday objects are typical values; landmark outlines are scaled to their official areas.</p>
+    <details id="credits">
+      <summary data-i18n="footer.credits">3D model credits</summary>
+      <div class="credits-body"></div>
+    </details>
+  </footer>
+</body>
+</html>
