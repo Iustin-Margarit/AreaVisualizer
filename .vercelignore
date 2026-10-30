@@ -9,3 +9,6 @@ package-lock.json
 .gitignore
 .gitattributes
 .nojekyll
+CLAUDE.md
+design-refs/
+.claude/
