@@ -1,0 +1,11 @@
+# Only the website itself goes online; everything below stays in the repository.
+PLAN.md
+README.md
+tests/
+tools/
+node_modules/
+package.json
+package-lock.json
+.gitignore
+.gitattributes
+.nojekyll
