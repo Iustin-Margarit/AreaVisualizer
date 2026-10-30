@@ -98,6 +98,7 @@ export function createView() {
   let areaGroup = null;
   let intro = null;          // { start } while the opening animation plays
   const popping = [];        // objects still popping up
+  const holders = [];        // each reference's group, in order (its label follows it as it pops)
   let content = null, model = null;
   let opts = { system: 'metric', both: false, areaLabel: '', volumeLabel: '', night: false, settings: { grid: true, labels: true, measures: true, shadows: true } };
   let fitted = null;        // { center, radius, points (relative), distance, limits: Box3 }
@@ -256,7 +257,7 @@ export function createView() {
   // --- scene -----------------------------------------------------------------
 
   function disposeContent() {
-    popping.length = 0;
+    popping.length = holders.length = 0;
     if (!content) return;
     content.traverse(o => { if (!o.userData.shared) o.geometry?.dispose(); });
     scene.remove(content);
@@ -377,11 +378,12 @@ export function createView() {
       const holder = new THREE.Group();
       holder.position.set(ref.x, 0, ref.z);
       content.add(holder);
+      holders[i] = holder;
       const show = object => {
         holder.add(object);
         if (intro && performance.now() - intro.start < 5000) {
           holder.userData.pop = { delay: 550 + i * 120, shown: performance.now() };
-          holder.scale.y = 0.001;
+          holder.visible = false; // until its turn: squashed flat, a big object would flicker on the ground
           popping.push(holder);
         }
       };
@@ -513,13 +515,15 @@ export function createView() {
         point: new THREE.Vector3(lm.x, 0, lm.z), size: Math.max(lm.shape.width, lm.shape.depth),
       });
     }
-    for (const ref of references) {
+    for (const [i, ref] of references.entries()) {
       const key = keyDimension(ref);
       labels.push({
         type: 'ref',
         el: make('l3-ref', `${escapeHTML(ref.name)} <small>${key.symbol} ${fmt(key.value)}</small>`),
         ring: make('l3-ring', ''),
         leader: make('l3-leader', ''),
+        holder: holders[i],
+        height: ref.h,
         top: new THREE.Vector3(ref.x, ref.h, ref.z),
         middle: new THREE.Vector3(ref.x, ref.h / 2, ref.z),
         size: Math.max(ref.w, ref.h, ref.d),
@@ -558,8 +562,13 @@ export function createView() {
         taken.push(box(l, p));
         continue;
       }
+      // While the object pops up, its label rides on top of it (and waits with it until then).
+      const grow = l.holder?.visible === false ? 0 : l.holder?.scale.y ?? 1;
+      l.top.y = l.height * grow;
+      l.middle.y = l.top.y / 2;
       const tiny = l.size * pxPerMeter(l.middle) < TINY_PX;
       const p = project(tiny ? l.middle : l.top);
+      p.visible &&= grow > 0;
       l.ring.hidden = !showNames || !tiny || !p.visible;
       if (!l.ring.hidden) move(l.ring, p.x, p.y, '-50%, -50%');
       l.el.hidden = l.leader.hidden = true;
@@ -611,6 +620,7 @@ export function createView() {
       const holder = popping[i];
       const { delay, shown } = holder.userData.pop; // in turn, or as soon as its model arrives
       const k = Math.min(1, Math.max(0, (now - Math.max((intro?.start ?? 0) + delay, shown)) / 650));
+      holder.visible = k > 0;
       holder.scale.y = Math.max(easeOutBack(k), 0.001);
       if (k === 1) popping.splice(i, 1);
       busy = true;
