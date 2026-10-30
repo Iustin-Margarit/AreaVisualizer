@@ -107,7 +107,7 @@ export default {
     'zoom.fitTitle': 'Arată tot (0)',
     'hint.2dTouch': 'Trage ca să muți · ciupește ca să mărești',
     'hint.2dMouse': 'Trage ca să muți · rotița sau dublu clic ca să mărești',
-    'hint.3dTouch': 'Trage ca să rotești · ciupește ca să mărești · două degete ca să muți',
+    'hint.3dTouch': 'Trage ca să rotești · ciupește ca să mărești · două degete ca să muți sau să rotești',
     'hint.3dMouse': 'Trage ca să rotești · clic dreapta ca să muți · rotița ca să mărești',
     'legend.square': 'Fiecare pătrat: {side} × {side}',
     'camera.label': 'Cameră',

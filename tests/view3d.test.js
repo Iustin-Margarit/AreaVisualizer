@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { buildModel, createKit, MODEL_KINDS, frustumGeometry, polyhedron } from '../js/views/3d/models.js';
 import { orbitBasis, fitDistance, gridLevels } from '../js/views/3d/math.js';
+import { angleDelta, isDoubleTap } from '../js/views/3d/gestures.js';
 import { keyDimension } from '../js/core/references.js';
 import { REFERENCES, orientedSize } from '../js/data/references.js';
 import { MODELS } from '../js/data/models.js';
@@ -126,4 +127,15 @@ test('downloaded models: files present, credited, and scaled to the real measure
   }
   assert.deepEqual(orientedSize({ size: [1, 2, 3], turn: 90 }), [3, 2, 1]);
   assert.deepEqual(orientedSize({ size: [1, 2, 3], lay: true }), [1, 3, 2]);
+});
+
+test('touch: a twist turns by the short way round, and a double tap is two quick taps close together', () => {
+  close(angleDelta(0.1, 0.3), 0.2);
+  close(angleDelta(3.1, -3.1), 2 * Math.PI - 6.2); // across ±π: a small step, not a full turn
+  close(angleDelta(-3.1, 3.1), -(2 * Math.PI - 6.2));
+  const first = { x: 100, y: 100, time: 1000 };
+  assert.ok(isDoubleTap(first, { x: 110, y: 105, time: 1200 }));
+  assert.ok(!isDoubleTap(first, { x: 110, y: 105, time: 1400 })); // too slow
+  assert.ok(!isDoubleTap(first, { x: 180, y: 100, time: 1200 })); // too far apart
+  assert.ok(!isDoubleTap(null, first));
 });
