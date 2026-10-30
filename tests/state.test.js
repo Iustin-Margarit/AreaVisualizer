@@ -10,13 +10,16 @@ import { PRESETS } from '../js/data/presets.js';
 
 const close = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) <= eps * Math.max(1, Math.abs(b)), `${a} ≉ ${b}`);
 
-test('initial state: 1 m × 1 m (or 10 ft × 10 ft), prefs override, links set the size', () => {
+test('initial state: 3D, 10 m × 10 m (30 ft × 30 ft; a 4 × 5 m room on phones), prefs override, links set the size', () => {
   const metric = initialState();
-  assert.deepEqual([metric.mode, metric.width, metric.length, metric.lengthUnit, metric.unit, metric.units], ['dims', 1, 1, 'm', 'm2', 'metric']);
+  assert.deepEqual([metric.mode, metric.width, metric.length, metric.lengthUnit, metric.unit, metric.units, metric.view], ['dims', 10, 10, 'm', 'm2', 'metric', '3d']);
   assert.equal(metric.compare, 'none', 'nothing is compared until the visitor asks');
 
   const us = initialState({ imperial: true });
-  assert.deepEqual([us.width, us.length, us.lengthUnit, us.unit, us.units], [10, 10, 'ft', 'ft2', 'imperial']);
+  assert.deepEqual([us.width, us.length, us.lengthUnit, us.unit, us.units], [30, 30, 'ft', 'ft2', 'imperial']);
+  const phone = initialState({ phone: true }), usPhone = initialState({ phone: true, imperial: true });
+  assert.deepEqual([phone.width, phone.length, usPhone.width, usPhone.length], [4, 5, 12, 15]);
+  assert.equal(initialState({ prefs: { view: '2d' } }).view, '2d', 'a remembered view wins');
 
   const remembered = initialState({ imperial: true, prefs: { units: 'imperial', unit: 'ac', view: '3d', lengthUnit: 'yd', theme: 'dark', grid: false, color: 'teal' } });
   assert.deepEqual([remembered.unit, remembered.view, remembered.width, remembered.length], ['ac', '3d', 1, 1]);
@@ -74,7 +77,7 @@ test('sanitize drops unknown fields and bad values', () => {
 
 test('an optional height: in links, converted with the system, and turned into a volume', () => {
   const room = { ...DEFAULTS, mode: 'dims', width: 4, length: 5, lengthUnit: 'm', height: 2.5, heightUnit: 'm' };
-  assert.equal(toQuery(room), '?m=dims&w=4&l=5&s=rectangle&u=m2&lu=m&h=2.5&hu=m&v=2d');
+  assert.equal(toQuery(room), '?m=dims&w=4&l=5&s=rectangle&u=m2&lu=m&h=2.5&hu=m&v=3d');
   assert.deepEqual([readUrl(toQuery(room)).height, readUrl(toQuery(room)).heightUnit], [2.5, 'm']);
   assert.ok(!toQuery(DEFAULTS).includes('h='), 'a flat area has no height in its link');
   assert.equal(readUrl('?h=0&hu=m').height, undefined);
@@ -112,8 +115,8 @@ test('url round-trips both input modes and keeps links minimal', () => {
   assert.deepEqual(back, { mode: 'area', value: 12.5, unit: 'm2', shape: 'rectangle', ratio: 2.5, lengthUnit: 'm', view: '3d' });
 
   const dims = { ...DEFAULTS, mode: 'dims', shape: 'rectangle', width: 10.97, length: 23.77, lengthUnit: 'm' };
-  assert.equal(toQuery(dims), '?m=dims&w=10.97&l=23.77&s=rectangle&u=m2&lu=m&v=2d');
-  assert.deepEqual(readUrl(toQuery(dims)), { mode: 'dims', width: 10.97, length: 23.77, shape: 'rectangle', unit: 'm2', lengthUnit: 'm', view: '2d' });
+  assert.equal(toQuery(dims), '?m=dims&w=10.97&l=23.77&s=rectangle&u=m2&lu=m&v=3d');
+  assert.deepEqual(readUrl(toQuery(dims)), { mode: 'dims', width: 10.97, length: 23.77, shape: 'rectangle', unit: 'm2', lengthUnit: 'm', view: '3d' });
   assert.ok(!toQuery({ ...dims, shape: 'square' }).includes('l='), 'a square needs one side');
   assert.equal(readUrl('?m=dims&w=4&l=5&lu=m').shape, 'rectangle', 'older sides links were rectangles');
 

@@ -609,6 +609,10 @@ export function createView() {
   // pop up one after another. Shadows follow along, so they're redrawn until it's over.
   function stepIntro(now) {
     let busy = false;
+    if (intro?.start > now) { // waiting for the page's opening splash to go (update)
+      labelsEl.classList.add('waiting');
+      return;
+    }
     if (intro) {
       const k = Math.min(1, (now - intro.start) / 900);
       areaGroup.scale.setScalar(Math.max(easeOutCubic(k), 0.001));
@@ -634,7 +638,7 @@ export function createView() {
   function render(now) {
     frame = 0;
     if (!model || !vw || !vh) return;
-    if (tween) stepTween(now);
+    if (tween?.start <= now) stepTween(now);
     stepIntro(now);
     controls.update(); // applies damping and spin, and asks for another frame while still moving
     if (controls.autoRotate) requestRender();
@@ -851,6 +855,17 @@ export function createView() {
       if (intro) {
         renderer.compile(scene, camera);
         intro.start = performance.now();
+        // Behind the page's opening splash (index.html), it starts once the splash is gone.
+        if (document.documentElement.classList.contains('intro')) {
+          const waiting = intro;
+          waiting.start = Infinity;
+          document.addEventListener('introend', () => {
+            if (intro !== waiting) return; // closed or moved on meanwhile
+            waiting.start = performance.now();
+            if (tween?.start === Infinity) tween.start = waiting.start;
+            requestRender();
+          }, { once: true });
+        }
       }
       const { shape } = model;
       ground.setGrid(-shape.width / 2, -shape.depth / 2, opts.system === 'imperial' ? FT : 1);
@@ -867,6 +882,7 @@ export function createView() {
         if (!introDone && !reducedMotion()) {
           jump(viewAt(fitted.distance * 1.8, elevationFor(camera.aspect) + 0.4, AZIMUTH - 0.7));
           animateTo(viewAt(fitted.distance), 1400);
+          if (intro?.start === Infinity) tween.start = Infinity; // glides in with the opening, once the splash is gone
         } else {
           jump(viewAt(fitted.distance));
         }

@@ -10,7 +10,8 @@ Texas…), in 2D or 3D.
 - Add or remove objects, including your own ("Sofa, 2 × 0.9 × 0.8 m").
 - Metric, imperial, or both side by side.
 - In English, Spanish, German, French, Italian, Portuguese, Romanian and Russian (follows the browser; switch with the flag menu).
-- 3D camera views: angled, top, front, eye level; full screen; a cloudy blue-sky day and a night
+- 3D camera views: angled, top, front, eye level; full screen (with a menu to change the size and
+  objects without leaving it); a cloudy blue-sky day and a night
   mode with the Milky Way and the moon. On phones: drag, pinch, twist to turn, double tap to zoom in.
 - Works on phones and computers, no sign-up, no tracking, no backend.
 - Every view is a link: share it and others see exactly the same thing.
