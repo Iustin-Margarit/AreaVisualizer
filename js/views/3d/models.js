@@ -287,22 +287,46 @@ const BUILDERS = {
     return parts;
   },
 
-  // Oval bowl: lathed profiles (radius 0–1, height in m) stretched to w × d, with a pitch inside.
+  // Bowl on the same plan as the 2D drawing (silhouettes.js): rounded-rectangle rings from the
+  // opening around the pitch (f = 0: 0.72 w × 0.6 d, corners 0.2 d) to the outer wall (f = 1: w × d,
+  // corners 0.4 d), joined into stands, a rim, the wall and a canopy; a rectangular pitch inside.
   stadium: ({ w, h, d }, k) => {
-    const lathe = (points, m, segments = 48) =>
-      place(new THREE.LatheGeometry(points.map(([r, y]) => new THREE.Vector2(r, y)), segments).scale(w / 2, 1, d / 2), m);
+    const outline = f => {
+      const hw = w * (0.36 + 0.14 * f), hd = d * (0.3 + 0.2 * f), r = d * (0.2 + 0.2 * f);
+      return [[1, 1], [-1, 1], [-1, -1], [1, -1]].flatMap(([sx, sz], corner) =>
+        Array.from({ length: 9 }, (_, i) => {
+          const a = (corner + i / 8) * Math.PI / 2;
+          return [sx * (hw - r) + r * Math.cos(a), sz * (hd - r) + r * Math.sin(a)];
+        }));
+    };
+    // A band from ring f0 at height y0 to ring f1 at y1.
+    const band = (f0, y0, f1, y1, m) => {
+      const [a, b] = [outline(f0), outline(f1)], n = a.length;
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(a.flatMap(([x, z], i) => [x, y0, z, b[i][0], y1, b[i][1]]), 3));
+      geometry.setIndex(Array.from({ length: n }, (_, i) => {
+        const j = (i + 1) % n;
+        return [2 * i, 2 * j, 2 * i + 1, 2 * i + 1, 2 * j, 2 * j + 1];
+      }).flat());
+      geometry.computeVertexNormals();
+      return place(geometry, m);
+    };
     const both = { side: THREE.DoubleSide };
-    const shell = k.mat(kindColor('stadium'), both), line = k.mat(C.pitchLine);
+    const shell = k.mat(kindColor('stadium'), both), seats = k.mat(C.seats, both), line = k.mat(C.pitchLine);
     const pl = w * 0.46, pw = d * 0.36, lw = Math.max(w * 0.002, 0.05), ly = h * 0.006;
+    const floor = new THREE.ShapeGeometry(new THREE.Shape(outline(0).map(([x, z]) => new THREE.Vector2(x, -z))))
+      .rotateX(-Math.PI / 2).translate(0, ly / 2, 0);
     return [
-      lathe([[0.6, 0], [0.6, h * 0.06]], shell),
-      lathe([[0.6, h * 0.06], [0.93, h * 0.62]], k.mat(C.seats, both)),
-      lathe([[0.93, h * 0.62], [1, h * 0.62]], shell),
-      lathe([[1, 0], [1, h]], shell),
-      lathe([[0.78, h * 0.88], [1, h]], k.mat(C.canopy, both)),
-      place(new THREE.CylinderGeometry(0.6, 0.6, ly, 48).scale(w / 2, 1, d / 2).translate(0, ly / 2, 0), k.mat(C.pitch, { glow: GLOW.pitch })),
+      band(0, 0, 0, h * 0.06, shell),
+      band(0, h * 0.06, 0.82, h * 0.62, seats),
+      band(0.82, h * 0.62, 1, h * 0.62, shell),
+      band(1, 0, 1, h, shell),
+      band(0.45, h * 0.88, 1, h, k.mat(C.canopy, both)),
+      place(floor, seats),
+      box(pl, ly, pw, k.mat(C.pitch, { glow: GLOW.pitch })),
       box(pl, lw, lw, line, 0, ly, -pw / 2), box(pl, lw, lw, line, 0, ly, pw / 2),
       box(lw, lw, pw, line, -pl / 2, ly, 0), box(lw, lw, pw, line, pl / 2, ly, 0), box(lw, lw, pw, line, 0, ly, 0),
+      place(new THREE.RingGeometry(d * 0.05 - lw / 2, d * 0.05 + lw / 2, 32).rotateX(-Math.PI / 2), line, 0, ly + lw, 0),
     ];
   },
 
