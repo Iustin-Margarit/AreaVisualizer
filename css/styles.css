@@ -22,7 +22,6 @@
   --border: #dedede;
   --card-border: #e4e4e1;
   --accent: #18181a;
-  --accent-2: #18181a;
   --accent-text: #ffffff;
   --tint: #f2f3ec;
   --ink: #1f1f21;
@@ -37,7 +36,6 @@
   --plan: #f7f7f3;
   --landmark: #c2700c;
   --landmark-text: #9a5a0a;
-  --shadow-sm: none;
   --shadow-lg: 0 12px 32px rgb(24 24 26 / 0.12), 0 2px 6px rgb(24 24 26 / 0.06);
   --glass: color-mix(in srgb, var(--surface) 90%, transparent);
   /* Area colours (the settings swatches) */
@@ -71,7 +69,6 @@
   --border: #2b2b2e;
   --card-border: #262628;
   --accent: #ececec;
-  --accent-2: #ececec;
   --accent-text: #0e0e0f;
   --tint: #1d1e1a;
   --ink: #202023;
@@ -143,7 +140,6 @@ svg { flex: none; }
 }
 .brand { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; }
 .brand strong { display: block; font-size: 1.1rem; font-weight: 600; letter-spacing: -0.02em; }
-.brand small { display: block; color: var(--muted); font-size: 0.8rem; }
 .logo { width: 34px; height: 34px; }
 .logo rect { fill: var(--btn-bg); }
 .logo path { stroke: var(--btn-text); stroke-opacity: 0.5; stroke-width: 1.6; fill: none; }
@@ -174,7 +170,6 @@ svg { flex: none; }
   .logo { width: 32px; height: 32px; }
   .brand { gap: 8px; }
   .brand strong { font-size: min(1.1rem, 5.2vw); }
-  .brand small { font-size: min(0.85rem, 3.4vw); }
   .brand span { min-width: 0; }
   .share-label { display: none; }
   .share { width: 40px; padding: 0; }
@@ -622,7 +617,7 @@ svg { flex: none; }
 .stage::backdrop { background: var(--bg); }
 
 .stage.is-loading::after {
-  content: "Loading…";
+  content: attr(data-loading);
   position: absolute;
   inset: 0;
   display: grid;

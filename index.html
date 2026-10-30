@@ -4,7 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e0e0f" media="(prefers-color-scheme: dark)">
   <title>AreaVisualizer: see how big an area really is</title>
   <meta name="description" content="See how big an area really is: type m², ft², acres or the sides and compare it with people, cars, buildings and famous places in 2D or 3D.">
   <meta property="og:title" content="AreaVisualizer: see how big an area really is">
@@ -140,7 +141,7 @@
       </div>
     </form>
 
-    <section id="stage" class="stage" data-i18n-attr="aria-label:stage.label">
+    <section id="stage" class="stage" data-i18n-attr="aria-label:stage.label;data-loading:stage.loading">
       <div class="stage-chrome">
         <div id="view-toggle" class="pill-toggle" role="group" data-i18n-attr="aria-label:view.group"></div>
         <div class="chrome-actions">

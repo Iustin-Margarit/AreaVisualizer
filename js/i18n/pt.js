@@ -78,6 +78,7 @@ export default {
     'cmp.times': '≈ {n}× {name}',
 
     'stage.label': 'Visualização',
+    'stage.loading': 'Carregando…',
     'view.group': 'Visualização',
     'view.failed': 'A visualização {view} não pôde iniciar neste aparelho.',
     'view.offline': 'A visualização {view} não pôde iniciar: parece que você está sem internet.',

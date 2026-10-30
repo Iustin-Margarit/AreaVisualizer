@@ -80,6 +80,7 @@ export default {
     'cmp.times': '≈ {n}× {name}',
 
     'stage.label': 'Визуализация',
+    'stage.loading': 'Загрузка…',
     'view.group': 'Вид',
     'view.failed': 'Режим {view} не запустился на этом устройстве.',
     'view.offline': 'Режим {view} не запустился — похоже, нет подключения к интернету.',

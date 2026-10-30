@@ -78,6 +78,7 @@ export default {
     'cmp.times': '≈ {n}× {name}',
 
     'stage.label': 'Visualisation',
+    'stage.loading': 'Chargement…',
     'view.group': 'Vue',
     'view.failed': 'La vue {view} n’a pas pu démarrer sur cet appareil.',
     'view.offline': 'La vue {view} n’a pas pu démarrer : vous semblez hors ligne.',

@@ -80,6 +80,7 @@ export default {
     'cmp.times': '≈ {n}× {name}',
 
     'stage.label': 'Visualization',
+    'stage.loading': 'Loading…',
     'view.group': 'View',
     'view.failed': 'The {view} view couldn’t start on this device.',
     'view.offline': 'The {view} view couldn’t start — you seem to be offline.',
