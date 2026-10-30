@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { buildModel, createKit, MODEL_KINDS, frustumGeometry, polyhedron } from '../js/views/3d/models.js';
 import { orbitBasis, fitDistance, gridLevels } from '../js/views/3d/math.js';
 import { angleDelta, isDoubleTap } from '../js/views/3d/gestures.js';
+import { easeOutBack, easeOutCubic } from '../js/views/3d/effects.js';
 import { keyDimension } from '../js/core/references.js';
 import { REFERENCES, orientedSize } from '../js/data/references.js';
 import { MODELS } from '../js/data/models.js';
@@ -138,4 +139,12 @@ test('touch: a twist turns by the short way round, and a double tap is two quick
   assert.ok(!isDoubleTap(first, { x: 110, y: 105, time: 1400 })); // too slow
   assert.ok(!isDoubleTap(first, { x: 180, y: 100, time: 1200 })); // too far apart
   assert.ok(!isDoubleTap(null, first));
+});
+
+test('opening animation: easings start at 0 and land on 1, the pop overshooting a touch', () => {
+  for (const ease of [easeOutBack, easeOutCubic]) {
+    close(ease(0), 0);
+    close(ease(1), 1);
+  }
+  assert.ok(Math.max(...Array.from({ length: 50 }, (_, i) => easeOutBack(i / 49))) > 1, 'pops a touch past full size');
 });

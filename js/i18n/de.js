@@ -50,6 +50,7 @@ export default {
     'dims.perSide': '{d} je Seite',
     'dims.high': '{d} hoch',
     'results.title': 'In anderen Einheiten',
+    'results.more': 'Alle Einheiten',
 
     'compare.title': 'Vergleichen mit',
     'compare.objects': 'Objekte',
@@ -130,11 +131,12 @@ export default {
     'aria.nextTo': ', daneben: {list}',
 
     'footer.note': 'Keine Anmeldung, kein Tracking. Die Größen der Alltagsobjekte sind typische Werte; die Umrisse der Orte sind auf ihre offizielle Fläche skaliert.',
-    'footer.credits': 'Quellen der 3D-Modelle',
+    'footer.credits': 'Quellenangaben',
     'credits.intro': 'Modelle von {site}, für diese Seite skaliert und umgefärbt:',
     'credits.item': '{title} von {author} ({licence})',
     'credits.licences': 'CC0 = gemeinfrei; CC-BY 3.0 = frei nutzbar mit Namensnennung ({link}).',
     'credits.licence': 'Lizenz',
+    'credits.moon': 'Mondfoto: {title}, NASA/GSFC/Arizona State University (gemeinfrei).',
   },
   symbols: { gal: 'US-Gal.' },
   units: {

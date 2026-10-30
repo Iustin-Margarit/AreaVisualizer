@@ -47,9 +47,13 @@ export function initCompare(el, store) {
         </form>
       </div>
     </div>
-    <div class="subhead"><span class="label" data-i18n="compare.about"></span></div>
-    <ul class="compare"></ul>
-    <p class="hint"></p>`;
+    <details class="fold">
+      <summary class="label" data-i18n="compare.about"></summary>
+      <div class="fold-body">
+        <ul class="compare"></ul>
+        <p class="hint"></p>
+      </div>
+    </details>`;
 
   translatePage(el);
   const $ = sel => el.querySelector(sel);

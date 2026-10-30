@@ -51,6 +51,7 @@ export default {
     'dims.perSide': '{d} per side',
     'dims.high': '{d} high',
     'results.title': 'In other units',
+    'results.more': 'All units',
 
     'compare.title': 'Compare with',
     'compare.objects': 'Objects',
@@ -132,11 +133,12 @@ export default {
     'aria.nextTo': ', next to: {list}',
 
     'footer.note': 'No sign-up, no tracking. Sizes of everyday objects are typical values; landmark outlines are scaled to their official areas.',
-    'footer.credits': '3D model credits',
+    'footer.credits': 'Credits',
     'credits.intro': 'Models from {site}, resized and recoloured for this site:',
     'credits.item': '{title} by {author} ({licence})',
     'credits.licences': 'CC0 = public domain; CC-BY 3.0 = free to use with credit ({link}).',
     'credits.licence': 'licence',
+    'credits.moon': 'Moon photo: {title}, NASA/GSFC/Arizona State University (public domain).',
   },
   units: {
     m2: 'square meters', ha: 'hectares', km2: 'square kilometers', ft2: 'square feet', yd2: 'square yards', ac: 'acres', mi2: 'square miles',
