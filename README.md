@@ -59,13 +59,13 @@ Department of City Planning. Manhattan, Paris and Vatican City are hand-traced.
 
 ## Deploy
 
-It's a static site with no server code: upload the repository as-is to GitHub Pages, Netlify,
-Cloudflare Pages or any web host. All paths are relative, so it also works from a sub-folder
-(`username.github.io/AreaVisualizer/`). `node_modules/` is only for tests and tools (it's in
-`.gitignore`); `.nojekyll` tells GitHub Pages to serve the files as they are.
+Live at [areavisualizer.vercel.app](https://areavisualizer.vercel.app). Vercel deploys every push
+to `main`; other branches get their own preview link. `.vercelignore` keeps tests, tools and notes
+off the site.
 
-On GitHub Pages: Settings → Pages → deploy from the main branch, root folder; then tick
-**Enforce HTTPS**.
+It's a static site with no server code, so any web host works too. All paths are relative, so it
+also works from a sub-folder. `node_modules/` is only for tests and tools (it's in `.gitignore`);
+`.nojekyll` tells GitHub Pages to serve the files as they are.
 
 ## Updating three.js
 
@@ -78,7 +78,13 @@ node tools/vendor.mjs        # copies the files the site uses into vendor/three/
 npm test                     # also checks vendor/ matches the installed version
 ```
 
+## Font
+
+[Geist](https://vercel.com/font) by Vercel, SIL Open Font Licence (`assets/fonts/Geist-LICENSE.txt`),
+served from this site.
+
 ## How it's built
 
-See [PLAN.md](PLAN.md) for the architecture, the folder layout and the roadmap (map overlay
-and AR are planned for; adding a view is one new file plus one line in `js/views/registry.js`).
+`js/core/` is the pure logic (units, shapes, the scene model), `js/ui/` the controls, and
+`js/views/` the 2D and 3D views. Adding a view (a map overlay, AR) is one new file plus one line in
+`js/views/registry.js`.

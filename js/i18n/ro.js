@@ -79,6 +79,7 @@ export default {
     'cmp.times': '≈ {n}× {name}',
 
     'stage.label': 'Vizualizare',
+    'stage.loading': 'Se încarcă…',
     'view.group': 'Vizualizare',
     'view.failed': 'Vizualizarea {view} nu a putut porni pe acest dispozitiv.',
     'view.offline': 'Vizualizarea {view} nu a putut porni — se pare că nu ai internet.',

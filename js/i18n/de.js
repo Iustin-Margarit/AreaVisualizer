@@ -78,6 +78,7 @@ export default {
     'cmp.times': '≈ {n}× {name}',
 
     'stage.label': 'Darstellung',
+    'stage.loading': 'Wird geladen…',
     'view.group': 'Ansicht',
     'view.failed': 'Die {view}-Ansicht konnte auf diesem Gerät nicht starten.',
     'view.offline': 'Die {view}-Ansicht konnte nicht starten – du scheinst offline zu sein.',
