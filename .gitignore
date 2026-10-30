@@ -1,9 +1,10 @@
 node_modules/
 .DS_Store
 
-# Working notes, kept on this PC only.
+# Working notes and Claude's skills, kept on this PC only.
 PLAN.md
 CLAUDE.md
+.claude/
 
 # Redesign example images (may be other people's work; keep off the public repo).
 design-refs/

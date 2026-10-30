@@ -10,7 +10,8 @@ Texas…), in 2D or 3D.
 - Add or remove objects, including your own ("Sofa, 2 × 0.9 × 0.8 m").
 - Metric, imperial, or both side by side.
 - In English, Spanish, German, French, Italian, Portuguese, Romanian and Russian (follows the browser; switch with the flag menu).
-- 3D camera views: angled, top, front, eye level; full screen; a blue-sky day and a starry night mode.
+- 3D camera views: angled, top, front, eye level; full screen; a cloudy blue-sky day and a night
+  mode with the Milky Way and the moon. On phones: drag, pinch, twist to turn, double tap to zoom in.
 - Works on phones and computers, no sign-up, no tracking, no backend.
 - Every view is a link: share it and others see exactly the same thing.
 - Plain HTML/CSS/JS, no build step. The 3D view uses [three.js](https://threejs.org) (a copy in
@@ -44,6 +45,12 @@ node tools/models.mjs        # → assets/models/*.glb and js/data/models.js
 npm run dev                  # then open http://localhost:5173/tools/topviews.html
                              # and save each picture into assets/top/
 ```
+
+## Moon photo
+
+The moon in the 3D night sky (`assets/moon.webp`) is NASA's Lunar Reconnaissance Orbiter photo of
+its near side ([NASA/GSFC/Arizona State University](https://commons.wikimedia.org/wiki/File:Moon_nearside_LRO.jpg),
+public domain), cropped, brightened and cut to a circle.
 
 ## Landmark outlines
 
