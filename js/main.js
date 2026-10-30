@@ -17,6 +17,7 @@ import { initUnitsToggle } from './ui/units-toggle.js';
 import { initShare } from './ui/share.js';
 import { initLanguagePicker } from './ui/language-picker.js';
 import { renderCredits } from './ui/credits.js';
+import { initFolds } from './ui/folds.js';
 import { toast } from './ui/toast.js';
 import { getView, availableViews } from './views/registry.js';
 
@@ -130,6 +131,7 @@ initStageChrome(stage, store);
 initUnitsToggle(document.getElementById('units-toggle'), store);
 initShare(document.getElementById('share'));
 initLanguagePicker(document.querySelector('.lang-menu'), store);
+initFolds();
 applyLanguage(store.get());
 themeToggle.addEventListener('click', () => store.set({ theme: document.documentElement.dataset.mode === 'dark' ? 'light' : 'dark' }));
 systemDark.addEventListener('change', () => render(store.get()));

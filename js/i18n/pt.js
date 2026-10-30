@@ -50,6 +50,7 @@ export default {
     'dims.perSide': '{d} de lado',
     'dims.high': '{d} de altura',
     'results.title': 'Em outras unidades',
+    'results.more': 'Todas as unidades',
 
     'compare.title': 'Comparar com',
     'compare.objects': 'Objetos',
@@ -130,11 +131,12 @@ export default {
     'aria.nextTo': ', ao lado de: {list}',
 
     'footer.note': 'Sem cadastro, sem rastreamento. Os tamanhos dos objetos do dia a dia são valores típicos; os contornos dos lugares estão em escala com a área oficial.',
-    'footer.credits': 'Créditos dos modelos 3D',
+    'footer.credits': 'Créditos',
     'credits.intro': 'Modelos do {site}, redimensionados e recoloridos para este site:',
     'credits.item': '{title}, de {author} ({licence})',
     'credits.licences': 'CC0 = domínio público; CC-BY 3.0 = uso livre com crédito ao autor ({link}).',
     'credits.licence': 'licença',
+    'credits.moon': 'Foto da Lua: {title}, NASA/GSFC/Arizona State University (domínio público).',
   },
   symbols: { gal: 'gal EUA' },
   units: {

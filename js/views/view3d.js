@@ -12,6 +12,8 @@ import { MODELS } from '../data/models.js';
 import { createGround } from './3d/ground.js';
 import { orbitBasis, fitDistance, gridLevels } from './3d/math.js';
 import { touchGestures } from './3d/gestures.js';
+import { areaGlowMaterial, areaGlow, easeOutBack, easeOutCubic } from './3d/effects.js';
+import { createSky, nightSky } from './3d/sky.js';
 
 const deg = THREE.MathUtils.degToRad;
 const FOV = 40;                                   // vertical field of view, degrees
@@ -21,19 +23,28 @@ const MARGIN = 0.8;                               // share of the view the conte
 const MIN_DISTANCE = 1 / 1000;                    // zoom limits, relative to the fitted distance
 const MAX_DISTANCE = 4;
 const EYE_HEIGHT = 1.65;
-const SUN = new THREE.Vector3(-0.45, 1, 0.6).normalize();
+const SUN = new THREE.Vector3(-0.5, 0.85, 0.6).normalize();
 const X_AXIS = new THREE.Vector3(1, 0, 0);
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const Z_AXIS = new THREE.Vector3(0, 0, 1);
 const TINY_PX = 10;                               // smaller on screen than this → locator ring
 const FT = 0.3048;
 
-// Day and night lighting (night follows the dark theme).
+// Day and night lighting (night follows the dark theme). Most of the soft light comes from the sky
+// itself (scene.environment); the hemisphere light only adds a little colour on top. The back
+// light gives objects a bright edge; the rest is how strongly the area glows (its fill, rim, and
+// the glow inside / outside its edge), how much the ground darkens away from the pool of light,
+// and the light the glowing area casts around it.
 const LIGHTS = {
-  day: { sky: '#dcebff', ground: '#a7b29b', hemi: 1.55, sun: '#fff2df', sunIntensity: 2.2 },
-  night: { sky: '#9fb3ff', ground: '#1c2230', hemi: 1.0, sun: '#cdd9ff', sunIntensity: 1.4 },
+  day: {
+    sky: '#f1f3f7', ground: '#b9bfae', hemi: 0.6, sun: '#fff2e0', sunIntensity: 2.5, back: '#ffffff', backIntensity: 0.9,
+    fillGlow: 0, rimGlow: 0.15, glow: [0.3, 0.22], additive: false, shade: 0.92, neon: 0,
+  },
+  night: {
+    sky: '#9fb3ff', ground: '#1c2230', hemi: 0.95, sun: '#cdd9ff', sunIntensity: 1.4, back: '#8fa8ff', backIntensity: 1.1,
+    fillGlow: 0.3, rimGlow: 0.9, glow: [0.35, 0.5], additive: true, shade: 0.75, neon: 1.6,
+  },
 };
-const MOON = new THREE.Vector3(0.45, 0.24, -0.86).normalize(); // low in the sky ahead of the default camera
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 // Default camera height: low on wide screens, steeper on tall ones, where a low view of a flat
@@ -73,113 +84,6 @@ function ribbons(lines, closed, width, y) {
   return geometry;
 }
 
-const seeded = seed => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-
-// Soft round glow (a radial gradient) — clouds, the Milky Way and the moon are made of these.
-function puff(g, x, y, r, rgb, alpha) {
-  const gradient = g.createRadialGradient(x, y, 0, x, y, r);
-  gradient.addColorStop(0, `rgba(${rgb}, ${alpha})`);
-  gradient.addColorStop(1, `rgba(${rgb}, 0)`);
-  g.fillStyle = gradient;
-  g.fillRect(x - r, y - r, r * 2, r * 2);
-}
-
-// Sky dome texture (equirectangular: top row straight up, middle row the horizon). A gradient from
-// `top` to `horizon` — the fog colour, so the ground fades into it seamlessly — with soft clouds
-// by day and a faint Milky Way at night.
-function skyTexture(top, horizon, night) {
-  const [W, H] = [1024, 512];
-  const half = H / 2;
-  const canvas = document.createElement('canvas');
-  canvas.width = W;
-  canvas.height = H;
-  const g = canvas.getContext('2d');
-  const gradient = g.createLinearGradient(0, 0, 0, half);
-  const blend = k => `#${new THREE.Color(top).lerp(new THREE.Color(horizon), k).getHexString()}`;
-  gradient.addColorStop(0, top);
-  gradient.addColorStop(0.55, blend(0.3)); // stays properly blue well down the sky,
-  gradient.addColorStop(0.9, blend(0.75)); // then pales into the horizon haze
-  gradient.addColorStop(1, horizon);
-  g.fillStyle = gradient;
-  g.fillRect(0, 0, W, half);
-  g.fillStyle = horizon;
-  g.fillRect(0, half, W, half);
-
-  const random = seeded(night ? 29 : 11);
-  const rowAt = elevationDeg => half * (1 - elevationDeg / 90);
-  if (night) {
-    // A band of faint light winding across the sky.
-    for (let i = 0; i < 260; i++) {
-      const t = random();
-      const y = rowAt(30 + 22 * Math.sin(t * Math.PI * 2 + 0.8)) + (random() - 0.5) * 26;
-      puff(g, t * W, y, 14 + random() * 26, '170, 185, 255', 0.035);
-    }
-  } else {
-    // Clouds: clusters of soft puffs, flatter and smaller toward the horizon.
-    for (let c = 0; c < 16; c++) {
-      const x = 80 + random() * (W - 160);
-      const elevation = 3 + random() * 24;
-      const spread = 50 + random() * 110;
-      for (let i = 0; i < 9; i++) {
-        const r = (12 + random() * 18) * (0.6 + elevation / 30);
-        puff(g, x + (random() - 0.5) * spread, rowAt(elevation) + (random() - 0.5) * 8, r, '255, 255, 255', 0.8);
-      }
-    }
-  }
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.mapping = THREE.EquirectangularReflectionMapping;
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
-
-// The moon: a pale disc with a few darker seas, in a soft blue halo.
-function moonSprite() {
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = 256;
-  const g = canvas.getContext('2d');
-  puff(g, 128, 128, 128, '170, 190, 255', 0.35);
-  g.fillStyle = '#eef1f7';
-  g.beginPath();
-  g.arc(128, 128, 34, 0, Math.PI * 2);
-  g.fill();
-  for (const [x, y, r] of [[116, 118, 9], [137, 112, 6], [134, 136, 8], [119, 140, 5]]) {
-    g.fillStyle = 'rgba(160, 170, 190, 0.55)';
-    g.beginPath();
-    g.arc(x, y, r, 0, Math.PI * 2);
-    g.fill();
-  }
-  const map = new THREE.CanvasTexture(canvas);
-  map.colorSpace = THREE.SRGBColorSpace;
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map, fog: false, depthWrite: false, transparent: true }));
-  sprite.position.copy(MOON);
-  sprite.scale.setScalar(0.22);
-  return sprite;
-}
-
-// Night sky objects: crisp pixel-sized stars and the moon, on a dome that travels with the camera
-// just inside the far plane, so the ground hides whatever is below the horizon.
-function nightSky() {
-  const random = seeded(7);
-  const layer = (count, size, opacity) => {
-    const positions = [];
-    while (positions.length < count * 3) {
-      const y = random();                 // uniform over the dome
-      if (y < 0.04) continue;             // leave the horizon haze clear
-      const a = random() * Math.PI * 2, r = Math.sqrt(1 - y * y);
-      positions.push(r * Math.cos(a), y, r * Math.sin(a));
-    }
-    const points = new THREE.Points(
-      new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(positions, 3)),
-      new THREE.PointsMaterial({ size, sizeAttenuation: false, color: '#ffffff', transparent: true, opacity, fog: false, depthWrite: false }),
-    );
-    points.frustumCulled = false;
-    return points;
-  };
-  const sky = new THREE.Group();
-  sky.add(layer(1100, 1, 0.65), layer(220, 1.6, 0.85), layer(40, 2.4, 1), moonSprite());
-  return sky;
-}
-
 const capitalize = s => s[0].toUpperCase() + s.slice(1);
 
 const extrudeUp = (shape2d, height) =>
@@ -190,7 +94,10 @@ const extrudeUp = (shape2d, height) =>
 // canvas, so they stay crisp and use the page's fonts and colours.
 export function createView() {
   let root, labelsEl, legendScale, hint, dock;
-  let renderer, scene, camera, controls, ground, kit, sun, hemi, stars;
+  let renderer, scene, camera, controls, ground, kit, sun, hemi, sky, stars, backLight, neon;
+  let areaGroup = null;
+  let intro = null;          // { start } while the opening animation plays
+  const popping = [];        // objects still popping up
   let content = null, model = null;
   let opts = { system: 'metric', both: false, areaLabel: '', volumeLabel: '', night: false, settings: { grid: true, labels: true, measures: true, shadows: true } };
   let fitted = null;        // { center, radius, points (relative), distance, limits: Box3 }
@@ -202,7 +109,8 @@ export function createView() {
   let removeGestures = null;
   let touchGlideAt = -1e9;  // when a double tap last glided in
   const materials = {};
-  const skies = {};
+  const skyLight = {};      // the light each sky casts on the models, worked out once per sky
+  let pmrem = null;
   const tmp = new THREE.Vector3();
 
   function requestRender() {
@@ -348,6 +256,7 @@ export function createView() {
   // --- scene -----------------------------------------------------------------
 
   function disposeContent() {
+    popping.length = 0;
     if (!content) return;
     content.traverse(o => { if (!o.userData.shared) o.geometry?.dispose(); });
     scene.remove(content);
@@ -440,29 +349,46 @@ export function createView() {
     const t = span * 0.004;
     content = new THREE.Group();
 
-    // Translucent area so the ground grid shows through (count the squares), with a solid rim.
+    // Translucent area so the ground grid shows through (count the squares), with a solid rim and
+    // a glow along its edge that spills onto the ground around it.
     const area = new THREE.Mesh(extrudeUp(outline(shape), t), materials.area);
     area.position.y = t * 0.2;
     area.receiveShadow = true;
     const rim = new THREE.Mesh(extrudeUp(outline(shape, span * 0.006), t * 1.4), materials.rim);
     rim.receiveShadow = true;
+    const glow = areaGlow(shape, materials.glow, span * 0.08, span * 0.06);
+    glow.position.y = t * 1.3;
     measureMarks = dimensionMarks(shape, span, height);
-    content.add(area, rim, measureMarks);
-    if (height) content.add(volumeGroup(shape, span, height));
+    areaGroup = new THREE.Group();
+    areaGroup.add(area, rim, glow, measureMarks);
+    if (height) areaGroup.add(volumeGroup(shape, span, height));
+    if (intro) areaGroup.scale.setScalar(0.001); // spreads out from its middle (stepIntro)
+    // By night the glowing area also lights what's around it, fading out a little beyond its edge.
+    neon.position.set(0, Math.max(span * 0.12, height * 0.6), 0);
+    neon.distance = span * 1.6 + height;
+    content.add(areaGroup);
 
     if (model.landmark) content.add(landmarkGroup(model.landmark, span));
 
     // Downloaded models arrive a moment later (once, then they're cached); the built-in model
-    // stands in only if one can't be loaded.
+    // stands in only if one can't be loaded. During the opening they pop up one after another.
     const group = content;
-    for (const ref of references) {
+    for (const [i, ref] of references.entries()) {
       const holder = new THREE.Group();
       holder.position.set(ref.x, 0, ref.z);
       content.add(holder);
+      const show = object => {
+        holder.add(object);
+        if (intro && performance.now() - intro.start < 5000) {
+          holder.userData.pop = { delay: 550 + i * 120, shown: performance.now() };
+          holder.scale.y = 0.001;
+          popping.push(holder);
+        }
+      };
       const builtIn = () => {
         const object = buildModel(ref, kit);
         object.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = true; });
-        holder.add(object);
+        show(object);
       };
       const spec = MODELS[ref.id];
       if (!spec) {
@@ -470,7 +396,7 @@ export function createView() {
         continue;
       }
       loadModel(spec).then(
-        model => holder.add(placeModel(model, spec, ref, opts.night)),
+        model => show(placeModel(model, spec, ref, opts.night)),
         err => { console.warn(`Model ${spec.file} failed, using the built-in one`, err); builtIn(); },
       ).then(() => {
         if (!renderer || content !== group) return; // closed, or the scene has moved on
@@ -502,15 +428,22 @@ export function createView() {
     const get = (name, fallback) => css.getPropertyValue(name).trim() || fallback;
     const horizon = get('--sky', '#e8edf4');
     const mode = opts.night ? 'night' : 'day';
-    const key = `${mode}|${horizon}`;
-    if (!skies[key]) skies[key] = skyTexture(get('--sky-top', '#bcd3ee'), horizon, opts.night);
-    scene.background = skies[key];
+    const top = get('--sky-top', '#bcd3ee');
+    sky.set({ top, horizon, sun: SUN, night: opts.night });
+    // The sky also lights the scene: soft light from every direction, bluish from above, the way
+    // real daylight wraps around things. Worked out once per sky, so it costs nothing per frame.
+    const key = `${mode}|${top}|${horizon}`;
+    if (!skyLight[key]) skyLight[key] = pmrem.fromScene(sky.lighting, 0, 0.1, 100);
+    scene.environment = skyLight[key].texture;
     stars.visible = opts.night;
     scene.fog.color.set(horizon);
     ground.setColors(get('--ground', '#f4f5f7'), get('--ground-line', '#aab2bf'));
-    materials.area.color.set(get('--area-3d', '#3b82f6'));
-    materials.walls.color.set(get('--area-3d', '#3b82f6'));
-    materials.rim.color.set(get('--shape-stroke', '#2563eb'));
+    const areaColor = get('--area-3d', '#3b82f6');
+    const rimColor = get('--shape-stroke', '#2563eb');
+    materials.area.color.set(areaColor);
+    materials.walls.color.set(areaColor);
+    materials.rim.color.set(rimColor);
+    materials.glow.color.set(areaColor);
     materials.dims.color.set(get('--muted', '#5d6470'));
     for (const m of [materials.landmarkFill, materials.landmarkLine, materials.landmarkMarks]) m.color.set(get('--landmark', '#d97706'));
     const light = LIGHTS[mode];
@@ -519,6 +452,17 @@ export function createView() {
     hemi.intensity = light.hemi;
     sun.color.set(light.sun);
     sun.intensity = light.sunIntensity;
+    backLight.color.set(light.back);
+    backLight.intensity = light.backIntensity;
+    // By night the area lights up: glowing fill and rim, and its glow adds light to the ground.
+    materials.area.emissive.set(areaColor).multiplyScalar(light.fillGlow);
+    materials.walls.emissive.set(areaColor).multiplyScalar(light.fillGlow * 0.5);
+    materials.rim.emissive.set(rimColor).multiplyScalar(light.rimGlow);
+    materials.glow.blending = light.additive ? THREE.AdditiveBlending : THREE.NormalBlending;
+    materials.glow.userData.uniforms.uAlpha.value.set(...light.glow);
+    neon.color.set(areaColor);
+    neon.intensity = light.neon;
+    ground.setShade(light.shade);
   }
 
   function applySettings() {
@@ -652,12 +596,45 @@ export function createView() {
 
   // --- frame -----------------------------------------------------------------
 
+  // The opening: the area spreads out from its middle while the camera glides in, then the objects
+  // pop up one after another. Shadows follow along, so they're redrawn until it's over.
+  function stepIntro(now) {
+    let busy = false;
+    if (intro) {
+      const k = Math.min(1, (now - intro.start) / 900);
+      areaGroup.scale.setScalar(Math.max(easeOutCubic(k), 0.001));
+      labelsEl.classList.toggle('waiting', k < 0.75);
+      busy = k < 1;
+      if (now - intro.start > 5000) intro = null;
+    }
+    for (let i = popping.length - 1; i >= 0; i--) {
+      const holder = popping[i];
+      const { delay, shown } = holder.userData.pop; // in turn, or as soon as its model arrives
+      const k = Math.min(1, Math.max(0, (now - Math.max((intro?.start ?? 0) + delay, shown)) / 650));
+      holder.scale.y = Math.max(easeOutBack(k), 0.001);
+      if (k === 1) popping.splice(i, 1);
+      busy = true;
+    }
+    if (busy) {
+      renderer.shadowMap.needsUpdate = true;
+      requestRender();
+    }
+  }
+
   function render(now) {
     frame = 0;
     if (!model || !vw || !vh) return;
     if (tween) stepTween(now);
+    stepIntro(now);
     controls.update(); // applies damping and spin, and asks for another frame while still moving
     if (controls.autoRotate) requestRender();
+
+    // The back light stays behind whatever you look at, so every object gets a bright edge.
+    tmp.subVectors(controls.target, camera.position).setY(0);
+    if (tmp.lengthSq() < 1e-12) tmp.set(0, 0, -1); // looking straight down
+    backLight.target.position.copy(controls.target);
+    backLight.position.copy(controls.target).addScaledVector(tmp.normalize(), 1);
+    backLight.position.y += 0.7;
 
     // Clipping and fog follow the zoom so everything from a phone to a city reads well.
     const distance = camera.position.distanceTo(controls.target);
@@ -667,9 +644,11 @@ export function createView() {
     camera.near = Math.min(distance * 0.002, EYE_HEIGHT * 0.5);
     camera.far = scene.fog.far * 1.5 + reach;
     camera.updateProjectionMatrix();
-    ground.place(controls.target, scene.fog.far * 3);
-    stars.position.copy(camera.position);
-    stars.scale.setScalar(camera.far * 0.9);
+    ground.place(controls.target, scene.fog.far * 3, distance);
+    for (const dome of [sky.dome, stars]) {
+      dome.position.copy(camera.position);
+      dome.scale.setScalar(camera.far * 0.9);
+    }
 
     renderer.render(scene, camera);
     updateLabels();
@@ -789,6 +768,7 @@ export function createView() {
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       renderer.shadowMap.autoUpdate = false;
+      pmrem = new THREE.PMREMGenerator(renderer);
       const canvas = renderer.domElement;
       canvas.tabIndex = 0;
       canvas.setAttribute('role', 'img');
@@ -804,15 +784,20 @@ export function createView() {
       const mapSize = coarsePointer() ? 1024 : 2048;
       sun.shadow.mapSize.set(mapSize, mapSize);
       sun.shadow.bias = -0.0004;
-      scene.add(hemi, sun, sun.target);
+      backLight = new THREE.DirectionalLight(); // placed every frame (render)
+      neon = new THREE.PointLight(0xffffff, 0, 1, 0); // even brightness up to its distance
+      scene.add(hemi, sun, sun.target, backLight, backLight.target, neon);
 
       ground = createGround();
+      sky = createSky();
       stars = nightSky();
-      scene.add(ground.mesh, stars);
+      scene.add(sky.dome, ground.mesh, stars);
       kit = createKit();
-      materials.area = new THREE.MeshStandardMaterial({ transparent: true, opacity: 0.32, depthWrite: false, roughness: 0.9 });
+      materials.area = new THREE.MeshStandardMaterial({ transparent: true, opacity: 0.26, depthWrite: false, roughness: 0.9 });
       materials.rim = new THREE.MeshStandardMaterial({ roughness: 0.6 });
-      materials.walls = new THREE.MeshStandardMaterial({ transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide, roughness: 0.9 });
+      // Glass: smooth, so the walls catch the sky's reflection at a slant and the sun's glint.
+      materials.walls = new THREE.MeshStandardMaterial({ transparent: true, opacity: 0.18, depthWrite: false, side: THREE.DoubleSide, roughness: 0.12 });
+      materials.glow = areaGlowMaterial();
       materials.hidden = new THREE.MeshBasicMaterial({ visible: false });
       materials.dims = new THREE.MeshBasicMaterial();
       materials.landmarkFill = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.14, depthWrite: false, side: THREE.DoubleSide });
@@ -844,12 +829,19 @@ export function createView() {
       model = nextModel;
       opts = { ...opts, ...nextOpts };
       const reframe = nextOpts.reframe !== false || !fitted;
+      if (reframe && !introDone && !reducedMotion()) intro = { start: performance.now() };
       kit.setNight(opts.night);
       rebuildContent();
       fitView();
       placeSun();
       applyColors();
       applySettings();
+      // Prepare the graphics before the opening's clock starts: on a slow phone the first frame can
+      // take a moment, which would otherwise eat the animation.
+      if (intro) {
+        renderer.compile(scene, camera);
+        intro.start = performance.now();
+      }
       const { shape } = model;
       ground.setGrid(-shape.width / 2, -shape.depth / 2, opts.system === 'imperial' ? FT : 1);
       buildLabels();
@@ -877,6 +869,7 @@ export function createView() {
       cancelAnimationFrame(frame);
       frame = 0;
       tween = null;
+      intro = null;
       resizeObserver?.disconnect();
       removeGestures?.();
       controls?.dispose();
@@ -884,7 +877,9 @@ export function createView() {
       ground?.dispose();
       kit?.dispose();
       Object.values(materials).forEach(m => m.dispose());
-      Object.values(skies).forEach(t => t.dispose());
+      Object.values(skyLight).forEach(target => target.dispose());
+      sky?.dispose();
+      pmrem?.dispose();
       stars?.traverse(o => { o.geometry?.dispose(); o.material?.map?.dispose(); o.material?.dispose(); });
       renderer?.dispose();
       renderer?.forceContextLoss();

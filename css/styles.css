@@ -47,11 +47,12 @@
   --shape-stroke: var(--area-blue);
   --shape-fill: color-mix(in srgb, var(--shape-stroke) 13%, transparent);
   /* 3D scene colours (opaque hex: read by three.js) */
-  --sky: #e4eaf0;
-  --sky-top: #7f9cc2;
-  --ground: #e7e8e1;
-  --ground-line: #b3b6ab;
+  --sky: #e6edf4;
+  --sky-top: #5d8fd3;
+  --ground: #dde2d0;
+  --ground-line: #a9b09b;
   --area-3d: var(--shape-stroke);
+  --vignette: rgb(24 36 58 / 0.12);
   --radius: 14px;
   --radius-in: 10px;
   color-scheme: light;
@@ -93,6 +94,7 @@
   --sky-top: #02040a;
   --ground: #19202b;
   --ground-line: #3d495c;
+  --vignette: rgb(0 0 0 / 0.4);
   color-scheme: dark;
 }
 
@@ -382,8 +384,116 @@ svg { flex: none; }
 }
 .input-group select:focus-visible { background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .input-group option, .input-group optgroup { background: var(--surface); color: var(--text); }
+
+/* Unit menus on computers, where the browser lets the open list be styled: a card like the rest of
+   the page, symbol and name in two columns, a tick on the chosen unit. Elsewhere (and on phones,
+   whose own pickers are easier to use) the browser's menu stays. */
+@supports (appearance: base-select) {
+  @media (pointer: fine) {
+    .input-group select, .input-group select::picker(select) { appearance: base-select; }
+    .input-group select { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .input-group select:hover { background: color-mix(in srgb, var(--text) 4%, transparent); }
+    .input-group select::picker-icon {
+      content: "";
+      width: 12px;
+      height: 12px;
+      background: var(--muted);
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5l3 3 3-3' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+      transition: rotate 0.15s;
+    }
+    .input-group select:open::picker-icon { rotate: 180deg; }
+    .input-group select::picker(select) {
+      margin-block: 6px;
+      padding: 6px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: var(--shadow-lg);
+    }
+    .input-group option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 400;
+      cursor: pointer;
+    }
+    .input-group option:hover, .input-group option:focus-visible { background: var(--surface-2); outline: none; }
+    .input-group option:checked { font-weight: 500; }
+    .input-group option::checkmark { order: 1; margin-left: auto; padding-left: 12px; color: var(--text); }
+    .input-group optgroup { padding-top: 4px; font-size: 0.75rem; font-weight: 500; color: var(--muted); }
+    .input-group optgroup option { font-size: 0.95rem; color: var(--text); }
+    .opt-symbol { min-width: 2.4em; font-weight: 600; }
+    .opt-sep { display: none; }
+    .opt-name { color: var(--muted); }
+  }
+}
 .sides .times { color: var(--muted); font-size: 1.1rem; padding: 0 2px; }
 .sides input + .times + input { padding-left: 6px; }
+
+.size-inputs { display: grid; gap: 14px; }
+.unit-box { display: contents; }
+.unit-short { display: none; }
+@media (max-width: 620px) {
+  /* Unit menus show just the symbol (m, m²) with a chevron; the menu lies invisibly on top, so a
+     tap still opens the phone's own picker, with the full names. */
+  .unit-box {
+    position: relative;
+    flex: none;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 5.5em; /* so the units of the sides and the area line up */
+    padding: 0 14px;
+    border-left: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+    font-weight: 500;
+  }
+  .unit-short { display: block; }
+  .unit-box::after {
+    content: '';
+    width: 12px;
+    height: 12px;
+    background: var(--muted);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5l3 3 3-3' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  .unit-box:focus-within { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .input-group .unit-box select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    font-size: 16px; /* iPhones zoom in on anything smaller */
+  }
+
+  /* The sides and the area join into one box, the area (the answer, tinted) as its lower half,
+     each with its unit on the same line. */
+  .size-inputs { gap: 0; }
+  .size-inputs .field { display: contents; }
+  #sides-label { order: 1; margin-bottom: 6px; }
+  .size-inputs .sides { order: 2; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+  .size-inputs .area-group {
+    order: 3;
+    flex-wrap: nowrap;
+    border: 1px solid var(--border);
+    border-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+  .input-group.area-group input { height: 56px; font-size: 1.7rem; }
+  .area-group .equals { padding-left: 14px; font-size: 1.3rem; }
+  #sides-alt { order: 4; margin-top: 6px; }
+  #area-alt { order: 5; margin-top: 2px; }
+  #area-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } /* still read out */
+}
 
 /* Optional height: a button until it's added, then a field with the volume underneath. */
 .field-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
@@ -562,6 +672,50 @@ svg { flex: none; }
   font-weight: 600;
 }
 .hint { margin: -6px 0 0; color: var(--muted); font-size: 0.78rem; }
+
+/* ---------- Folds (js/ui/folds.js) ---------- */
+/* Wide screens: always open, and the summary is just the heading it replaces (.bare: none at all).
+   Phones: folded behind a tappable row with a chevron. */
+.fold > summary { list-style: none; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary + * { margin-top: 8px; }
+.fold-body { display: grid; gap: 14px; }
+@media (min-width: 621px) {
+  .fold > summary { pointer-events: none; }
+  .fold.bare > summary { display: none; }
+  .fold.bare > summary + * { margin-top: 0; }
+}
+@media (max-width: 620px) {
+  .fold > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: var(--radius-in);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .fold > summary::after {
+    content: '';
+    flex: none;
+    width: 12px;
+    height: 12px;
+    background: currentColor;
+    opacity: 0.6;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5l3 3 3-3' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+    transition: rotate 0.2s;
+  }
+  .fold[open] > summary::after { rotate: 180deg; }
+  .fold > summary + * { margin-top: 10px; }
+  .results .fold > summary { background: rgb(255 255 255 / 0.08); color: var(--ink-text); }
+}
 
 /* ---------- Results card ---------- */
 .results p { margin: 0; }
@@ -905,10 +1059,20 @@ svg { flex: none; }
 
 /* ---------- 3D view ---------- */
 .view-3d { position: absolute; inset: 0; background: var(--sky); }
+/* A soft vignette: the corners a touch darker, so the eye goes to the middle. Above the picture,
+   below the labels and buttons. */
+.view-3d::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 75% 70% at 50% 48%, transparent 55%, var(--vignette));
+}
 .view-3d > canvas { display: block; width: 100%; height: 100%; touch-action: none; outline: none; }
 .view-3d > canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
-.labels-3d { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.labels-3d { position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; transition: opacity 0.4s; }
+.labels-3d.waiting { opacity: 0; } /* while the area spreads out on opening */
 .l3 {
   position: absolute;
   left: 0;

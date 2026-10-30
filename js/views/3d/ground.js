@@ -11,6 +11,9 @@ uniform float uGridUnit;
 uniform vec3 uGridColor;
 uniform float uMinCellPx;
 uniform float uGridStrength;
+uniform vec2 uFocus;
+uniform vec2 uFade;
+uniform float uShade;
 varying vec2 vGridPos;
 
 // Coverage (0–1) of anti-aliased lines \`width\` px wide every \`cell\` grid units; fw = grid units per pixel.
@@ -29,7 +32,9 @@ float gridAlpha(vec2 worldXZ) {
   // Fine lines stay solid until they get dense, then fade; near f = 1 they thicken to match the
   // coarse lines they are about to become, so switching levels is seamless.
   float fineWidth = mix(1.0, 1.7, smoothstep(0.75, 1.0, f));
-  return max(gridLines(p, fw, fine, fineWidth) * smoothstep(0.0, 0.45, f), gridLines(p, fw, fine * 10.0, 1.7));
+  float lines = max(gridLines(p, fw, fine, fineWidth) * smoothstep(0.0, 0.45, f), gridLines(p, fw, fine * 10.0, 1.7));
+  // Sharp around what you're looking at, fading away from it, so the far ground stays calm.
+  return lines * (1.0 - smoothstep(uFade.x, uFade.y, distance(worldXZ, uFocus)));
 }
 `;
 
@@ -40,10 +45,14 @@ export function createGround() {
     uGridColor: { value: new THREE.Color() },
     uMinCellPx: { value: MIN_CELL_PX },
     uGridStrength: { value: 0.8 },
+    uFocus: { value: new THREE.Vector2() },
+    uFade: { value: new THREE.Vector2(1e9, 2e9) },
+    uShade: { value: 1 },
   };
 
   // A standard material (so the ground takes light and shadows) with the grid mixed into its colour.
-  const material = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0 });
+  // Less of the sky's bluish light on the ground than on objects, so its colour stays true.
+  const material = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, envMapIntensity: 0.35 });
   material.onBeforeCompile = shader => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
@@ -51,7 +60,10 @@ export function createGround() {
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvGridPos = (modelMatrix * vec4(transformed, 1.0)).xz;');
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>\n${GRID_GLSL}`)
-      .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, uGridColor, uGridStrength * gridAlpha(vGridPos));');
+      .replace('#include <color_fragment>', `#include <color_fragment>
+diffuseColor.rgb = mix(diffuseColor.rgb, uGridColor, uGridStrength * gridAlpha(vGridPos));
+// A soft pool of light around what you're looking at, a little darker further out.
+diffuseColor.rgb *= mix(uShade, 1.0, 1.0 - smoothstep(uFade.x * 0.5, uFade.y * 1.4, distance(vGridPos, uFocus)));`);
   };
 
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), material);
@@ -70,10 +82,17 @@ export function createGround() {
       material.color.set(ground);
       uniforms.uGridColor.value.set(line);
     },
-    // The plane follows the camera's look-at point and only needs to reach the fogged-out horizon.
-    place(center, size) {
+    // How dark the ground gets away from the pool of light (1 = not at all).
+    setShade(shade) {
+      uniforms.uShade.value = shade;
+    },
+    // The plane follows the camera's look-at point and only needs to reach the fogged-out horizon;
+    // the grid fades out between 1.5 and 4 camera distances from that point.
+    place(center, size, distance) {
       mesh.position.set(center.x, 0, center.z);
       mesh.scale.set(size, 1, size);
+      uniforms.uFocus.value.set(center.x, center.z);
+      uniforms.uFade.value.set(distance * 1.5, distance * 4);
     },
     dispose() {
       mesh.geometry.dispose();

@@ -51,6 +51,7 @@ export default {
     'dims.perSide': '{d} pe latură',
     'dims.high': '{d} înălțime',
     'results.title': 'În alte unități',
+    'results.more': 'Toate unitățile',
 
     'compare.title': 'Compară cu',
     'compare.objects': 'Obiecte',
@@ -131,11 +132,12 @@ export default {
     'aria.nextTo': ', lângă: {list}',
 
     'footer.note': 'Fără cont, fără urmărire. Dimensiunile obiectelor obișnuite sunt valori tipice; contururile locurilor sunt la scara suprafeței lor oficiale.',
-    'footer.credits': 'Autorii modelelor 3D',
+    'footer.credits': 'Surse și autori',
     'credits.intro': 'Modele de pe {site}, redimensionate și recolorate pentru acest site:',
     'credits.item': '{title}, de {author} ({licence})',
     'credits.licences': 'CC0 = domeniu public; CC-BY 3.0 = utilizare liberă cu menționarea autorului ({link}).',
     'credits.licence': 'licență',
+    'credits.moon': 'Fotografia Lunii: {title}, NASA/GSFC/Arizona State University (domeniu public).',
   },
   symbols: { gal: 'gal SUA' },
   units: {
