@@ -169,8 +169,10 @@ svg { flex: none; }
   /* Sized to the screen rather than the text setting, so the name always fits beside the buttons. */
   .logo { width: 32px; height: 32px; }
   .brand { gap: 8px; }
-  .brand strong { font-size: min(1.1rem, 5.2vw); }
-  .brand span { min-width: 0; }
+  .brand strong { font-size: min(1.1rem, 4.8vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .brand span { min-width: 0; overflow: hidden; }
+  .lang-button { padding: 0 9px; }
+  .lang-button .chevron { display: none; }
   .share-label { display: none; }
   .share { width: 40px; padding: 0; }
 }
@@ -323,11 +325,20 @@ svg { flex: none; }
 .alt-line { margin: 0; color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 
 /* The area reads as the answer: tinted with the area colour, with an equals sign in front. */
-.input-group.area-group { background: var(--tint); border-color: transparent; min-height: 68px; }
+/* The unit gets its own line under the number, so long numbers and long unit names both fit. */
+.input-group.area-group { flex-wrap: wrap; background: var(--tint); border-color: transparent; }
 .area-group .equals { padding-left: 16px; color: var(--muted); font-size: 1.5rem; font-weight: 300; }
-.input-group.area-group input { padding-left: 8px; font-size: 2rem; font-weight: 400; letter-spacing: -0.04em; }
+.input-group.area-group input { height: 60px; padding-left: 8px; font-size: 2rem; font-weight: 400; letter-spacing: -0.04em; }
 .input-group.area-group input[data-derived] { color: var(--text); font-weight: 400; }
-.input-group.area-group select { border-left-color: color-mix(in srgb, var(--text) 10%, transparent); }
+.input-group.area-group select {
+  flex: 1 1 100%;
+  max-width: none;
+  height: 40px;
+  padding: 0 16px;
+  border-left: 0;
+  border-top: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+  font-size: 0.9rem;
+}
 
 .input-group {
   display: flex;
@@ -595,7 +606,7 @@ svg { flex: none; }
   grid-area: stage;
   position: relative;
   width: 100%;
-  height: min(72vh, 640px);
+  height: min(64vh, 560px);
   min-height: 340px;
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
@@ -663,6 +674,29 @@ svg { flex: none; }
   color: var(--btn-text);
 }
 .pill-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
+
+/* Phones: a strip down each side of the stage scrolls the page (a small grip shows where), so a
+   view that fills the screen never traps you; everywhere else a drag moves the view. The right one
+   starts below the zoom buttons. */
+.scroll-edge { display: none; }
+@media (pointer: coarse) {
+  .scroll-edge { display: block; position: absolute; left: 0; top: 60px; bottom: 64px; width: 22px; touch-action: pan-y; }
+  .scroll-edge.right { left: auto; right: 0; top: 204px; }
+  .scroll-edge::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 8px;
+    width: 4px;
+    height: 40px;
+    margin-top: -20px;
+    border-radius: 2px;
+    background: var(--muted);
+    opacity: 0.35;
+  }
+  .scroll-edge.right::after { left: auto; right: 8px; }
+  .is-full .scroll-edge { display: none; }
+}
 
 .chrome-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; }
 

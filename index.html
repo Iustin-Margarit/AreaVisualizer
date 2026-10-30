@@ -143,6 +143,9 @@
 
     <section id="stage" class="stage" data-i18n-attr="aria-label:stage.label;data-loading:stage.loading">
       <div class="stage-chrome">
+        <!-- Phones: a strip down each side scrolls the page, so the view never traps you. -->
+        <div class="scroll-edge" aria-hidden="true"></div>
+        <div class="scroll-edge right" aria-hidden="true"></div>
         <div id="view-toggle" class="pill-toggle" role="group" data-i18n-attr="aria-label:view.group"></div>
         <div class="chrome-actions">
           <button id="settings-button" class="tool" type="button" data-i18n-attr="aria-label:settings.title;title:settings.title" aria-expanded="false" aria-controls="settings-panel">

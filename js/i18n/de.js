@@ -106,7 +106,7 @@ export default {
     'zoom.fitTitle': 'Alles zeigen (0)',
     'hint.2dTouch': 'Ziehen zum Verschieben · Finger spreizen zum Zoomen',
     'hint.2dMouse': 'Ziehen zum Verschieben · Mausrad oder Doppelklick zum Zoomen',
-    'hint.3dTouch': 'Ziehen zum Drehen · Finger spreizen zum Zoomen · zwei Finger zum Verschieben',
+    'hint.3dTouch': 'Ziehen zum Drehen · Finger spreizen zum Zoomen · zwei Finger zum Verschieben oder Drehen',
     'hint.3dMouse': 'Ziehen zum Drehen · Rechtsklick-Ziehen zum Verschieben · Mausrad zum Zoomen',
     'legend.square': 'Jedes Kästchen: {side} × {side}',
     'camera.label': 'Kamera',

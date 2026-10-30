@@ -108,7 +108,7 @@ export default {
     'zoom.fitTitle': 'Fit to view (0)',
     'hint.2dTouch': 'Drag to move · pinch to zoom',
     'hint.2dMouse': 'Drag to move · scroll or double-click to zoom',
-    'hint.3dTouch': 'Drag to turn · pinch to zoom · two fingers to move',
+    'hint.3dTouch': 'Drag to turn · pinch to zoom · two fingers to move or twist',
     'hint.3dMouse': 'Drag to turn · right-drag to move · scroll to zoom',
     'legend.square': 'Each square: {side} × {side}',
     'camera.label': 'Camera',

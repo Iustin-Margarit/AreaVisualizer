@@ -106,7 +106,7 @@ export default {
     'zoom.fitTitle': 'Mostra tutto (0)',
     'hint.2dTouch': 'Trascina per spostare · pizzica per lo zoom',
     'hint.2dMouse': 'Trascina per spostare · rotellina o doppio clic per lo zoom',
-    'hint.3dTouch': 'Trascina per ruotare · pizzica per lo zoom · due dita per spostare',
+    'hint.3dTouch': 'Trascina per ruotare · pizzica per lo zoom · due dita per spostare o girare',
     'hint.3dMouse': 'Trascina per ruotare · tasto destro per spostare · rotellina per lo zoom',
     'legend.square': 'Ogni quadrato: {side} × {side}',
     'camera.label': 'Telecamera',
