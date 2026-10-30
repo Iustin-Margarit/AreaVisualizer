@@ -880,6 +880,41 @@ svg { flex: none; }
 .is-full .icon-collapse { display: block; }
 .is-full .icon-expand { display: none; }
 
+/* Full screen on computers: a button opens a side panel holding the size and objects cards
+   (stage-chrome.js moves them in), so you can change things without leaving full screen. */
+.stage-start { position: absolute; top: 12px; left: 12px; display: flex; align-items: stretch; gap: 8px; }
+.stage-start .pill-toggle { position: static; }
+.drawer-button { display: none; }
+.stage-drawer {
+  position: absolute;
+  top: 64px;
+  left: 12px;
+  bottom: 12px;
+  width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  border-radius: var(--radius);
+  animation: drawer-in 0.2s ease-out;
+}
+.stage-drawer[hidden] { display: none; }
+.stage-drawer > .card { flex: none; box-shadow: var(--shadow-lg); }
+@keyframes drawer-in { from { opacity: 0; transform: translateX(-12px); } }
+@media (min-width: 900px) {
+  .is-full .drawer-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    width: auto;
+    height: auto;
+    padding: 0 14px 0 11px;
+    font-weight: 500;
+  }
+}
+
 .settings { top: 60px; right: 12px; width: 250px; display: grid; gap: 10px; }
 .popover-row { display: grid; gap: 6px; }
 .switch { display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; }
@@ -1113,3 +1148,64 @@ svg { flex: none; }
 
 /* Shown only in browsers too old to run the site. */
 .too-old { position: fixed; inset: auto 16px 16px; padding: 14px 16px; border-radius: 12px; background: #b42318; color: #fff; font-weight: 600; text-align: center; z-index: 100; }
+
+/* ---------- Opening splash (index.html: first visit in a tab, never on a reload) ---------- */
+/* The logo draws itself (frame, then grid lines), its middle square lights up in the area colour,
+   the name slides in; then the splash fades away and the page rises into place. */
+.intro-splash { display: none; }
+html.intro .intro-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+  background: var(--bg);
+  animation: splash-out 0.45s ease-in 1.35s forwards;
+}
+html.intro .intro-splash.skip { animation: splash-out 0.2s ease-in forwards; }
+.intro-logo { width: clamp(72px, 9vw, 104px); height: auto; overflow: visible; }
+.intro-logo .frame {
+  fill: var(--btn-bg);
+  fill-opacity: 0;
+  stroke: var(--btn-bg);
+  stroke-width: 1.2;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 0.5s ease-out forwards, fill-in 0.3s ease-out 0.35s forwards;
+}
+.intro-logo .line {
+  fill: none;
+  stroke: var(--btn-text);
+  stroke-opacity: 0.5;
+  stroke-width: 1.6;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 0.3s ease-out forwards;
+}
+.intro-logo .line:nth-of-type(1) { animation-delay: 0.45s; }
+.intro-logo .line:nth-of-type(2) { animation-delay: 0.52s; }
+.intro-logo .line:nth-of-type(3) { animation-delay: 0.59s; }
+.intro-logo .line:nth-of-type(4) { animation-delay: 0.66s; }
+.intro-logo .cell {
+  fill: var(--shape-stroke);
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0);
+  animation: pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) 0.8s forwards;
+}
+.intro-name {
+  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  opacity: 0;
+  animation: rise 0.45s ease-out 0.8s forwards;
+}
+html.intro .header, html.intro .page-title, html.intro main { animation: rise 0.45s ease-out 1.35s backwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes fill-in { to { fill-opacity: 1; } }
+@keyframes pop { to { transform: scale(1); } }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes splash-out { to { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { html.intro .intro-splash { display: none; } }

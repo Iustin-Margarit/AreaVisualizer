@@ -137,3 +137,15 @@ themeToggle.addEventListener('click', () => store.set({ theme: document.document
 systemDark.addEventListener('change', () => render(store.get()));
 store.subscribe(render);
 render(store.get());
+
+// The opening splash (index.html): taken away once it has faded out; a click or a key skips ahead.
+const splash = document.querySelector('.intro-splash');
+const endIntro = () => {
+  splash.remove();
+  document.documentElement.classList.remove('intro');
+};
+if (!document.documentElement.classList.contains('intro')) endIntro();
+else {
+  splash.addEventListener('animationend', e => { if (e.target === splash) endIntro(); });
+  for (const type of ['pointerdown', 'keydown']) addEventListener(type, () => splash.classList.add('skip'), { once: true });
+}
