@@ -984,6 +984,7 @@ svg { flex: none; }
 
 .camera-dock {
   position: absolute;
+  user-select: none; /* quick clicks shouldn't highlight the button names */
   left: 50%;
   bottom: 12px;
   transform: translateX(-50%);

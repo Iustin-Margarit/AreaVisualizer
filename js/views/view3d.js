@@ -609,7 +609,7 @@ export function createView() {
   // pop up one after another. Shadows follow along, so they're redrawn until it's over.
   function stepIntro(now) {
     let busy = false;
-    if (intro?.start > now) { // waiting for the page's opening splash to go (update)
+    if (intro?.start === Infinity) { // waiting for the page's opening splash to go (update)
       labelsEl.classList.add('waiting');
       return;
     }
@@ -638,7 +638,7 @@ export function createView() {
   function render(now) {
     frame = 0;
     if (!model || !vw || !vh) return;
-    if (tween?.start <= now) stepTween(now);
+    if (tween && tween.start !== Infinity) stepTween(now); // Infinity: waiting for the splash (update)
     stepIntro(now);
     controls.update(); // applies damping and spin, and asks for another frame while still moving
     if (controls.autoRotate) requestRender();
