@@ -80,6 +80,7 @@ export default {
     'cmp.times': '≈ {n}× {name}',
 
     'stage.label': 'Visualization',
+    'stage.loading': 'Loading…',
     'view.group': 'View',
     'view.failed': 'The {view} view couldn’t start on this device.',
     'view.offline': 'The {view} view couldn’t start — you seem to be offline.',
@@ -107,7 +108,7 @@ export default {
     'zoom.fitTitle': 'Fit to view (0)',
     'hint.2dTouch': 'Drag to move · pinch to zoom',
     'hint.2dMouse': 'Drag to move · scroll or double-click to zoom',
-    'hint.3dTouch': 'Drag to turn · pinch to zoom · two fingers to move',
+    'hint.3dTouch': 'Drag to turn · pinch to zoom · two fingers to move or twist',
     'hint.3dMouse': 'Drag to turn · right-drag to move · scroll to zoom',
     'legend.square': 'Each square: {side} × {side}',
     'camera.label': 'Camera',

@@ -11,6 +11,7 @@ import { loadModel, placeModel } from './3d/gltf.js';
 import { MODELS } from '../data/models.js';
 import { createGround } from './3d/ground.js';
 import { orbitBasis, fitDistance, gridLevels } from './3d/math.js';
+import { touchGestures } from './3d/gestures.js';
 
 const deg = THREE.MathUtils.degToRad;
 const FOV = 40;                                   // vertical field of view, degrees
@@ -22,6 +23,7 @@ const MAX_DISTANCE = 4;
 const EYE_HEIGHT = 1.65;
 const SUN = new THREE.Vector3(-0.45, 1, 0.6).normalize();
 const X_AXIS = new THREE.Vector3(1, 0, 0);
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const Z_AXIS = new THREE.Vector3(0, 0, 1);
 const TINY_PX = 10;                               // smaller on screen than this → locator ring
 const FT = 0.3048;
@@ -197,6 +199,8 @@ export function createView() {
   let frame = 0, tween = null, introDone = false;
   let preset = 'angle'; // the camera view picked last; null once the visitor moves the camera
   let resizeObserver = null;
+  let removeGestures = null;
+  let touchGlideAt = -1e9;  // when a double tap last glided in
   const materials = {};
   const skies = {};
   const tmp = new THREE.Vector3();
@@ -686,8 +690,24 @@ export function createView() {
     requestRender();
   }
 
-  // Double-click glides toward the clicked spot on the ground.
+  // Twisting two fingers turns the view around its center, like a map.
+  function twistBy(angle) {
+    tween = null;
+    preset = null;
+    tmp.subVectors(camera.position, controls.target).applyAxisAngle(Y_AXIS, angle);
+    camera.position.copy(controls.target).add(tmp);
+    requestRender();
+  }
+
+  function onDoubleTap({ x, y }) {
+    touchGlideAt = performance.now();
+    onDoubleClick({ clientX: x, clientY: y });
+  }
+
+  // Double-click (or double tap) glides toward the clicked spot on the ground.
   function onDoubleClick(e) {
+    // Some phones also send a double-click after our own double tap: glide once.
+    if (e instanceof Event && performance.now() - touchGlideAt < 800) return;
     const rect = renderer.domElement.getBoundingClientRect();
     const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
     const ray = new THREE.Raycaster();
@@ -809,6 +829,7 @@ export function createView() {
       controls.listenToKeyEvents(canvas);            // arrow keys pan
       controls.addEventListener('start', onInteractionStart);
       controls.addEventListener('change', onControlsChange);
+      removeGestures = touchGestures(canvas, { onTwist: twistBy, onDoubleTap });
       canvas.addEventListener('dblclick', onDoubleClick);
       canvas.addEventListener('keydown', onKey);
       root.querySelector('.stage-tools').addEventListener('click', onToolClick);
@@ -857,6 +878,7 @@ export function createView() {
       frame = 0;
       tween = null;
       resizeObserver?.disconnect();
+      removeGestures?.();
       controls?.dispose();
       if (scene) disposeContent();
       ground?.dispose();

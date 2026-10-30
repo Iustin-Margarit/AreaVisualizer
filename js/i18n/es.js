@@ -78,6 +78,7 @@ export default {
     'cmp.times': '≈ {n}× {name}',
 
     'stage.label': 'Visualización',
+    'stage.loading': 'Cargando…',
     'view.group': 'Vista',
     'view.failed': 'La vista {view} no pudo iniciarse en este dispositivo.',
     'view.offline': 'La vista {view} no pudo iniciarse: parece que no tienes conexión.',
@@ -105,7 +106,7 @@ export default {
     'zoom.fitTitle': 'Ajustar a la vista (0)',
     'hint.2dTouch': 'Arrastra para mover · pellizca para hacer zoom',
     'hint.2dMouse': 'Arrastra para mover · rueda o doble clic para hacer zoom',
-    'hint.3dTouch': 'Arrastra para girar · pellizca para hacer zoom · dos dedos para mover',
+    'hint.3dTouch': 'Arrastra para girar · pellizca para hacer zoom · dos dedos para mover o girar',
     'hint.3dMouse': 'Arrastra para girar · clic derecho para mover · rueda para hacer zoom',
     'legend.square': 'Cada cuadro: {side} × {side}',
     'camera.label': 'Cámara',
