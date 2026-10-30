@@ -1,0 +1,15 @@
+{
+  "name": "meter-square-visualizer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "python tools/dev-server.py",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "4.1.1",
+    "@gltf-transform/extensions": "4.1.1",
+    "@gltf-transform/functions": "4.1.1",
+    "three": "0.160.0"
+  }
+}

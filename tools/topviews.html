@@ -1,0 +1,56 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Top views</title>
+<!--
+  Renders each downloaded model straight from above for the 2D view (assets/top/<id>.png).
+  Open through the dev server (npm run dev → http://localhost:5173/tools/topviews.html) and use
+  "Save" on each image; the images cover exactly the model's footprint, length along x.
+-->
+<script type="importmap">{ "imports": { "three": "../vendor/three/build/three.module.min.js", "three/addons/": "../vendor/three/examples/jsm/" } }</script>
+<style>
+  body { font: 14px system-ui, sans-serif; display: flex; flex-wrap: wrap; gap: 16px; padding: 16px; background: #dde5d5; }
+  figure { margin: 0; background: #fff; padding: 8px; border-radius: 8px; }
+  img { display: block; max-width: 256px; background: repeating-conic-gradient(#eee 0 25%, #fff 0 50%) 0 0 / 16px 16px; }
+</style>
+<script type="module">
+import * as THREE from 'three';
+import { MODELS } from '../js/data/models.js';
+import { REFERENCES } from '../js/data/references.js';
+import { loadModel, placeModel } from '../js/views/3d/gltf.js';
+
+const PX = 256; // pixels along the longer side
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setClearColor(0x000000, 0);
+const out = [];
+
+for (const [id, model] of Object.entries(MODELS)) {
+  const spec = { ...model, file: `../${model.file}` }; // paths are relative to the site root
+  const ref = REFERENCES.find(r => r.id === id);
+  const object = placeModel(await loadModel(spec), spec, ref, false);
+  const scene = new THREE.Scene();
+  scene.add(object, new THREE.HemisphereLight('#ffffff', '#8a8f86', 2.2));
+  const sun = new THREE.DirectionalLight('#fff2df', 1.6);
+  sun.position.set(-0.45, 1, 0.6);
+  scene.add(sun);
+
+  // Orthographic camera framing exactly the footprint, +z (front) at the bottom of the image.
+  object.updateMatrixWorld(true); // posed skeletons need their bones placed before measuring
+  const box = new THREE.Box3().setFromObject(object, true);
+  const [w, d] = [box.max.x - box.min.x, box.max.z - box.min.z];
+  const camera = new THREE.OrthographicCamera(box.min.x, box.max.x, -box.min.z, -box.max.z, 0.01, (box.max.y + 1) * 4);
+  camera.position.set(0, box.max.y * 2 + 1, 0);
+  camera.up.set(0, 0, -1);
+  camera.lookAt(0, 0, 0);
+  const scale = PX / Math.max(w, d);
+  renderer.setSize(Math.max(1, Math.round(w * scale)), Math.max(1, Math.round(d * scale)));
+  renderer.render(scene, camera);
+  const url = renderer.domElement.toDataURL('image/png');
+  out.push(`${id} ${url}`);
+
+  const figure = document.createElement('figure');
+  figure.innerHTML = `<img src="${url}" alt="${id}"><figcaption>${id} · <a href="${url}" download="${id}.png">Save</a></figcaption>`;
+  document.body.append(figure);
+}
+const pre = Object.assign(document.createElement('pre'), { id: 'out', hidden: true, textContent: out.join('\n') });
+document.body.append(pre);
+</script>
