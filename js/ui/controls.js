@@ -6,10 +6,12 @@ import { PRESETS } from '../data/presets.js';
 import { t, unitName, unitSymbol } from '../i18n/index.js';
 
 // Unit menus list only the chosen measuring system's units, or both groups when comparing.
+// Browsers with styleable menus show the symbol and name as two columns (css: base-select); the
+// others drop the spans and read "m² — square meters".
 function unitOptions(table, units) {
   const group = system => Object.entries(table)
     .filter(([, u]) => u.system === system)
-    .map(([id]) => `<option value="${id}">${unitSymbol(id)} — ${unitName(id)}</option>`)
+    .map(([id]) => `<option value="${id}"><span class="opt-symbol">${unitSymbol(id)}</span><span class="opt-sep"> — </span><span class="opt-name">${unitName(id)}</span></option>`)
     .join('');
   if (units !== 'both') return group(units);
   return ['metric', 'imperial'].map(system => `<optgroup label="${t(`system.${system}`)}">${group(system)}</optgroup>`).join('');
@@ -227,6 +229,8 @@ export function initControls(form, store) {
         : '';
       volume.innerHTML = `${t('volume')} <strong>${formatVolumes(volumeM3, system, both)}</strong>${water}`;
     }
+    // Phones show just the unit's symbol on each menu (styles.css, .unit-box); the list keeps names.
+    for (const select of [unit, lengthUnit, heightUnit]) select.nextElementSibling.textContent = unitSymbol(select.value);
     numbers.forEach(fit); // last, once hidden fields have been shown
   }
 

@@ -52,6 +52,7 @@ export default {
     'dims.perSide': '{d} каждая сторона',
     'dims.high': '{d} в высоту',
     'results.title': 'В других единицах',
+    'results.more': 'Все единицы',
 
     'compare.title': 'Сравнить с',
     'compare.objects': 'Объекты',
@@ -132,11 +133,12 @@ export default {
     'aria.nextTo': ', рядом: {list}',
 
     'footer.note': 'Без регистрации и слежки. Размеры обычных предметов — типичные значения; контуры мест масштабированы по их официальной площади.',
-    'footer.credits': 'Авторы 3D-моделей',
+    'footer.credits': 'Источники и авторы',
     'credits.intro': 'Модели с {site}, изменены по размеру и цвету для этого сайта:',
     'credits.item': '{title}, автор {author} ({licence})',
     'credits.licences': 'CC0 — общественное достояние; CC-BY 3.0 — можно использовать с указанием автора ({link}).',
     'credits.licence': 'лицензия',
+    'credits.moon': 'Фото Луны: {title}, NASA/GSFC/Arizona State University (общественное достояние).',
   },
   symbols: {
     m: 'м', cm: 'см', mm: 'мм', km: 'км', ft: 'фут', in: 'дюйм', yd: 'ярд', mi: 'миля',

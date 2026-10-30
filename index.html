@@ -101,25 +101,28 @@
         </div>
       </div>
 
-      <div class="field">
-        <label for="dim-width" id="sides-label">Width × length</label>
-        <div class="input-group sides">
-          <input id="dim-width" type="text" inputmode="decimal" enterkeyhint="next" spellcheck="false">
-          <span class="times" aria-hidden="true">×</span>
-          <input id="dim-length" type="text" inputmode="decimal" enterkeyhint="done" spellcheck="false" data-i18n-attr="aria-label:sides.length">
-          <select id="length-unit" data-i18n-attr="aria-label:sides.unit"></select>
+      <!-- Phones join the sides and the area into one box (styles.css, .size-inputs). -->
+      <div class="size-inputs">
+        <div class="field">
+          <label for="dim-width" id="sides-label">Width × length</label>
+          <div class="input-group sides">
+            <input id="dim-width" type="text" inputmode="decimal" enterkeyhint="next" spellcheck="false">
+            <span class="times" aria-hidden="true">×</span>
+            <input id="dim-length" type="text" inputmode="decimal" enterkeyhint="done" spellcheck="false" data-i18n-attr="aria-label:sides.length">
+            <span class="unit-box"><select id="length-unit" data-i18n-attr="aria-label:sides.unit"></select><span class="unit-short" aria-hidden="true"></span></span>
+          </div>
+          <p class="alt-line" id="sides-alt" hidden></p>
         </div>
-        <p class="alt-line" id="sides-alt" hidden></p>
-      </div>
 
-      <div class="field result-field">
-        <label for="area-value" data-i18n="area.label">Area</label>
-        <div class="input-group area-group">
-          <span class="equals" aria-hidden="true">=</span>
-          <input id="area-value" type="text" inputmode="decimal" enterkeyhint="done" spellcheck="false">
-          <select id="area-unit" data-i18n-attr="aria-label:area.unit"></select>
+        <div class="field result-field">
+          <label for="area-value" id="area-label" data-i18n="area.label">Area</label>
+          <div class="input-group area-group">
+            <span class="equals" aria-hidden="true">=</span>
+            <input id="area-value" type="text" inputmode="decimal" enterkeyhint="done" spellcheck="false">
+            <span class="unit-box"><select id="area-unit" data-i18n-attr="aria-label:area.unit"></select><span class="unit-short" aria-hidden="true"></span></span>
+          </div>
+          <p class="alt-line" id="area-alt" hidden></p>
         </div>
-        <p class="alt-line" id="area-alt" hidden></p>
       </div>
       <p class="field-hint" data-i18n="size.hint">Type the sides to get the area — or type the area to get the sides.</p>
 
@@ -133,16 +136,16 @@
         </div>
         <div class="input-group" id="height-group" hidden>
           <input id="dim-height" type="text" inputmode="decimal" enterkeyhint="done" spellcheck="false">
-          <select id="height-unit" data-i18n-attr="aria-label:height.unit"></select>
+          <span class="unit-box"><select id="height-unit" data-i18n-attr="aria-label:height.unit"></select><span class="unit-short" aria-hidden="true"></span></span>
         </div>
         <p class="alt-line" id="height-alt" hidden></p>
         <p class="volume-line" id="volume" aria-live="polite" hidden></p>
       </div>
 
-      <div class="field">
-        <span class="label" data-i18n="presets">Quick picks</span>
+      <details class="fold">
+        <summary class="label" data-i18n="presets">Quick picks</summary>
         <div id="presets" class="chips"></div>
-      </div>
+      </details>
     </form>
 
     <section id="stage" class="stage" data-i18n-attr="aria-label:stage.label;data-loading:stage.loading">
@@ -189,7 +192,7 @@
   <footer class="footer">
     <p data-i18n="footer.note">No sign-up, no tracking. Sizes of everyday objects are typical values; landmark outlines are scaled to their official areas.</p>
     <details id="credits">
-      <summary data-i18n="footer.credits">3D model credits</summary>
+      <summary data-i18n="footer.credits">Credits</summary>
       <div class="credits-body"></div>
     </details>
   </footer>

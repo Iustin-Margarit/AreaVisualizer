@@ -50,6 +50,7 @@ export default {
     'dims.perSide': '{d} por lado',
     'dims.high': '{d} de alto',
     'results.title': 'En otras unidades',
+    'results.more': 'Todas las unidades',
 
     'compare.title': 'Comparar con',
     'compare.objects': 'Objetos',
@@ -130,11 +131,12 @@ export default {
     'aria.nextTo': ', junto a: {list}',
 
     'footer.note': 'Sin registro y sin rastreo. Los tamaños de los objetos son valores típicos; los contornos de los lugares están a escala de su superficie oficial.',
-    'footer.credits': 'Créditos de los modelos 3D',
+    'footer.credits': 'Créditos',
     'credits.intro': 'Modelos de {site}, redimensionados y recoloreados para este sitio:',
     'credits.item': '{title}, de {author} ({licence})',
     'credits.licences': 'CC0 = dominio público; CC-BY 3.0 = uso libre citando al autor ({link}).',
     'credits.licence': 'licencia',
+    'credits.moon': 'Foto de la Luna: {title}, NASA/GSFC/Arizona State University (dominio público).',
   },
   symbols: { gal: 'gal EE. UU.' },
   units: {
