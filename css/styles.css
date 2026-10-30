@@ -581,6 +581,12 @@ svg { flex: none; }
   font-variant-numeric: tabular-nums;
 }
 
+/* ---------- Page not found (404.html) ---------- */
+.not-found { max-width: 560px; margin: 8vh auto 0; }
+.not-found h1 { margin: 0; font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 500; letter-spacing: -0.035em; }
+.not-found p { margin: 0; color: var(--muted); }
+.not-found .primary { justify-self: start; display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; text-decoration: none; }
+
 /* ---------- Toast ---------- */
 .toast {
   position: fixed;

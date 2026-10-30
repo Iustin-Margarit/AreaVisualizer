@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="noindex">
+  <title>Page not found · AreaVisualizer</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='3' width='26' height='26' rx='6' fill='%231d1d20'/%3E%3Cpath d='M11.7 3v26M20.3 3v26M3 11.7h26M3 20.3h26' stroke='%23fff' stroke-opacity='.5' stroke-width='1.5'/%3E%3C/svg%3E">
+  <!-- Shown by Vercel for any address that doesn't exist, at any depth: so paths start with "/". -->
+  <script>
+    let prefs;
+    try { prefs = JSON.parse(localStorage.getItem('areavisualizer:prefs')); } catch {}
+    const dark = prefs?.theme === 'dark' || (prefs?.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.dataset.mode = dark ? 'dark' : 'light';
+  </script>
+  <link rel="stylesheet" href="/css/styles.css">
+  <!-- In the visitor's language: their remembered one, else the browser's. -->
+  <script type="module">
+    import { setLanguage, detectLanguage, isLanguage, t } from '/js/i18n/index.js';
+    import { translatePage } from '/js/i18n/dom.js';
+    let lang;
+    try { lang = JSON.parse(localStorage.getItem('areavisualizer:prefs'))?.lang; } catch {}
+    lang = isLanguage(lang) ? lang : detectLanguage();
+    setLanguage(lang);
+    document.documentElement.lang = lang;
+    translatePage(document);
+    document.title = `${t('notFound.title')} · AreaVisualizer`;
+  </script>
+</head>
+<body>
+  <header class="header">
+    <a class="brand" href="/" data-i18n-attr="aria-label:home">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="3" y="3" width="26" height="26" rx="7"/>
+        <path d="M11.7 3v26M20.3 3v26M3 11.7h26M3 20.3h26"/>
+      </svg>
+      <span><strong>AreaVisualizer</strong></span>
+    </a>
+  </header>
+  <main class="card not-found">
+    <h1 data-i18n="notFound.title">Page not found</h1>
+    <p data-i18n="notFound.text">This page doesn’t exist. The link may be old or mistyped.</p>
+    <a class="primary" href="/" data-i18n="notFound.home">Go to AreaVisualizer</a>
+  </main>
+</body>
+</html>
