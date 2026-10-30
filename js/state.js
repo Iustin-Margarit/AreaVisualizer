@@ -16,7 +16,7 @@ export const DEFAULTS = {
   value: 1, unit: 'm2', shape: 'rectangle', ratio: 1,
   width: 1, length: 1, lengthUnit: 'm',
   height: null, heightUnit: 'm', // optional: how tall the area is (a room, a box); null when flat
-  view: '2d',
+  view: '3d',                 // falls back to 2D where 3D can't run (main.js)
   compare: 'none',            // landmark drawn next to the area: 'none' or the id the visitor picked
   objects: null,              // null: objects picked to suit the size; or the visitor's own list
   // Display settings (remembered per visitor, not part of links).
@@ -71,12 +71,16 @@ export function normalize(state) {
   return s.units === 'both' ? s : { ...s, ...inSystem(s, s.units) };
 }
 
+// The first size someone sees, in meters or feet: a room on a phone (beside a person, a chair, a
+// dog), a small house's floor on a wider screen (a person, a car, a tree).
+const FIRST_SIDES = { phone: { m: [4, 5], ft: [12, 15] }, wide: { m: [10, 10], ft: [30, 30] } };
+
 // Locale picks the measuring system and language, remembered preferences override them, a shared
 // link sets the size. The starting numbers follow the units, so nobody lands on "1 ft²".
-export function initialState({ imperial = false, lang = 'en', prefs = {}, url = {} } = {}) {
+export function initialState({ imperial = false, lang = 'en', phone = false, prefs = {}, url = {} } = {}) {
   const system = imperial ? 'imperial' : 'metric';
   const base = { ...DEFAULTS, ...SYSTEM_UNITS[system], units: system, lang, ...sanitize(prefs) };
-  const [width, length] = LENGTH_UNITS[base.lengthUnit].start;
+  const [width, length] = FIRST_SIDES[phone ? 'phone' : 'wide'][base.lengthUnit] ?? LENGTH_UNITS[base.lengthUnit].start;
   return normalize({ ...base, value: UNITS[base.unit].start, width, length, ...sanitize(url) });
 }
 

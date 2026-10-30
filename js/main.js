@@ -21,7 +21,10 @@ import { initFolds } from './ui/folds.js';
 import { toast } from './ui/toast.js';
 import { getView, availableViews } from './views/registry.js';
 
-const store = createStore(initialState({ imperial: prefersImperial(), lang: detectLanguage(), prefs: loadPrefs(), url: readUrl() }));
+const store = createStore(initialState({
+  imperial: prefersImperial(), lang: detectLanguage(), phone: matchMedia('(max-width: 620px)').matches,
+  prefs: loadPrefs(), url: readUrl(),
+}));
 if (!availableViews().some(v => v.id === store.get().view)) store.set({ view: availableViews()[0].id });
 
 const stage = document.getElementById('stage');
@@ -143,6 +146,7 @@ const splash = document.querySelector('.intro-splash');
 const endIntro = () => {
   splash.remove();
   document.documentElement.classList.remove('intro');
+  document.dispatchEvent(new Event('introend')); // the 3D view's own opening waits for this
 };
 if (!document.documentElement.classList.contains('intro')) endIntro();
 else {
