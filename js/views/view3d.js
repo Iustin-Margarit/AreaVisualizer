@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { formatLength, formatLengths, escapeHTML } from '../core/format.js';
 import { keyDimension } from '../core/references.js';
-import { layoutLabels } from './labels.js';
+import { layoutLabels, labelRank } from './labels.js';
 import { toolsHTML, legendHTML, cameraDockHTML, coarsePointer } from './stage-ui.js';
 import { t } from '../i18n/index.js';
 import { translatePage } from '../i18n/dom.js';
@@ -523,6 +523,7 @@ export function createView() {
         ring: make('l3-ring', ''),
         leader: make('l3-leader', ''),
         holder: holders[i],
+        rank: labelRank(ref),
         height: ref.h,
         top: new THREE.Vector3(ref.x, ref.h, ref.z),
         middle: new THREE.Vector3(ref.x, ref.h / 2, ref.z),
@@ -547,6 +548,7 @@ export function createView() {
     const areaVisible = model.span * pxPerMeter(fitted.center) > 70;
 
     const refs = [];
+    const rings = [];
     const taken = []; // screen boxes of the measurement labels placed so far
     const box = (l, p) => (l.left ? [p.x - 8 - l.width, p.y - 10, p.x - 8, p.y + 10] : [p.x - l.width / 2, p.y - 10, p.x + l.width / 2, p.y + 10]);
     const free = b => !taken.some(t => b[0] < t[2] && b[2] > t[0] && b[1] < t[3] && b[3] > t[1]);
@@ -569,13 +571,22 @@ export function createView() {
       const tiny = l.size * pxPerMeter(l.middle) < TINY_PX;
       const p = project(tiny ? l.middle : l.top);
       p.visible &&= grow > 0;
-      l.ring.hidden = !showNames || !tiny || !p.visible;
-      if (!l.ring.hidden) move(l.ring, p.x, p.y, '-50%, -50%');
-      l.el.hidden = l.leader.hidden = true;
-      if (showNames && p.visible) refs.push({ l, anchorX: p.x, anchorY: tiny ? p.y - 12 : p.y, width: l.width });
+      l.ring.hidden = l.el.hidden = l.leader.hidden = true;
+      if (showNames && tiny && p.visible) rings.push({ l, p });
+      if (showNames && p.visible) refs.push({ l, rank: l.rank, anchorX: p.x, anchorY: tiny ? p.y - 12 : p.y, width: l.width });
     }
-    // Object labels float above the objects; overlapping ones stack upward with a leader line.
-    for (const it of layoutLabels(refs, { direction: -1, offset: 6, lineHeight: 22, gap: 6 })) {
+    // Tiny objects side by side would draw a knot of rings: one ring marks the spot.
+    const ringsShown = [];
+    for (const { l, p } of rings.sort((a, b) => a.l.rank - b.l.rank)) {
+      if (ringsShown.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 30)) continue; // 22 px rings, touching or close
+      l.ring.hidden = false;
+      move(l.ring, p.x, p.y, '-50%, -50%');
+      ringsShown.push(p);
+    }
+    // Object labels float above the objects; overlapping ones stack upward with a leader line, at
+    // most one line up. The rest stay unnamed (their colour matches the dot in the objects list).
+    for (const it of layoutLabels(refs, { direction: -1, offset: 6, lineHeight: 22, gap: 6, maxShift: 1 })) {
+      if (it.hidden) continue;
       it.l.el.hidden = false;
       move(it.l.el, it.x, it.y, '-50%, -100%');
       if (it.shift) {

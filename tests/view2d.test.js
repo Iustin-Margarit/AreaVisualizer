@@ -78,6 +78,13 @@ test('layoutLabels keeps labels by their objects and pushes overlaps down', () =
   assert.deepEqual(layoutLabels([]), []);
 });
 
+test('layoutLabels places important labels first and leaves out what would stack too high', () => {
+  const at = (id, rank) => ({ id, rank, anchorX: 100, anchorY: 50, width: 60 });
+  const out = layoutLabels([at('small', 3), at('person', 1), at('car', 2)], { maxShift: 1 });
+  const byId = Object.fromEntries(out.map(o => [o.id, o]));
+  assert.deepEqual(['person', 'car', 'small'].map(id => [byId[id].shift, byId[id].hidden]), [[0, false], [1, false], [2, true]]);
+});
+
 test('every reference kind has a silhouette that renders', () => {
   for (const ref of REFERENCES) {
     assert.ok(KINDS.includes(ref.kind), `missing silhouette for kind "${ref.kind}"`);

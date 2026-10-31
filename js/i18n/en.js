@@ -25,7 +25,7 @@ export default {
     'size.title': 'Size',
     'size.reset': 'Reset',
     'size.resetTitle': 'Start again with a new size',
-    'size.hint': 'Type the sides to get the area — or type the area to get the sides.',
+    'size.hint': 'Type the dimensions to get the area — or the other way around.',
     'shape.group': 'Shape',
     'shape.rectangle': 'Rectangle',
     'shape.rectangleTitle': 'Rectangle or square',
@@ -40,6 +40,8 @@ export default {
     'height.add': 'Add height',
     'height.label': 'Height',
     'height.remove': 'Remove',
+
+    'height.removeTitle': 'Remove the height and go back to a flat area',
     'height.unit': 'Height unit',
     'volume': 'Volume',
     'presets': 'Quick picks',
@@ -53,10 +55,12 @@ export default {
     'results.title': 'In other units',
     'results.more': 'All units',
 
-    'compare.title': 'Compare with',
+    'compare.title': 'For scale',
     'compare.objects': 'Objects',
     'compare.auto': 'Picked for this size',
     'compare.reset': 'Reset to automatic',
+
+    'compare.resetTitle': 'Replace your list with objects picked for this size',
     'compare.none': 'No objects — add one below.',
     'compare.add': 'Add object',
     'compare.addTitle': 'Add an object',
