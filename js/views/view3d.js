@@ -45,6 +45,8 @@ const LIGHTS = {
     fillGlow: 0.3, rimGlow: 0.9, glow: [0.35, 0.5], additive: true, shade: 0.75, neon: 1.6,
   },
 };
+// With the glow setting off: a plain area and rim, nothing lit around them.
+const NO_GLOW = { fillGlow: 0, rimGlow: 0.15, neon: 0 };
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 // Default camera height: low on wide screens, steeper on tall ones, where a low view of a flat
@@ -100,7 +102,7 @@ export function createView() {
   const popping = [];        // objects still popping up
   const holders = [];        // each reference's group, in order (its label follows it as it pops)
   let content = null, model = null;
-  let opts = { system: 'metric', both: false, areaLabel: '', volumeLabel: '', night: false, settings: { grid: true, labels: true, measures: true, shadows: true } };
+  let opts = { system: 'metric', both: false, areaLabel: '', volumeLabel: '', night: false, settings: { grid: true, labels: true, measures: true, shadows: true, glow: true } };
   let fitted = null;        // { center, radius, points (relative), distance, limits: Box3 }
   let labels = [];
   let vw = 0, vh = 0;
@@ -448,7 +450,8 @@ export function createView() {
     materials.glow.color.set(areaColor);
     materials.dims.color.set(get('--muted', '#5d6470'));
     for (const m of [materials.landmarkFill, materials.landmarkLine, materials.landmarkMarks]) m.color.set(get('--landmark', '#d97706'));
-    const light = LIGHTS[mode];
+    const light = opts.settings.glow ? LIGHTS[mode] : { ...LIGHTS[mode], ...NO_GLOW };
+    materials.glow.visible = opts.settings.glow;
     hemi.color.set(light.sky);
     hemi.groundColor.set(light.ground);
     hemi.intensity = light.hemi;

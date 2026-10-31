@@ -109,7 +109,7 @@ async function render(state) {
   if (await showView(state.view) && store.get() === state) {
     // Re-frame the camera only when what's drawn changed — not for a setting or theme switch.
     const key = sceneKey(scene);
-    const settings = { grid: state.grid, labels: state.labels, measures: state.measures, shadows: state.shadows };
+    const settings = { grid: state.grid, labels: state.labels, measures: state.measures, shadows: state.shadows, glow: state.glow };
     active.view.update(scene, { system: input.system, both, areaLabel, volumeLabel, night, settings, reframe: key !== lastSceneKey });
     lastSceneKey = key;
   }

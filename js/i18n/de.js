@@ -99,6 +99,7 @@ export default {
     'settings.measures': 'Maße',
     'settings.labels': 'Beschriftungen',
     'settings.shadows': 'Schatten',
+    'settings.glow': 'Leuchten',
     'settings.color': 'Flächenfarbe',
     'color.blue': 'Blau',
     'color.green': 'Grün',

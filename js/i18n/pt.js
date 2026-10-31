@@ -99,6 +99,7 @@ export default {
     'settings.measures': 'Medidas',
     'settings.labels': 'Rótulos',
     'settings.shadows': 'Sombras',
+    'settings.glow': 'Brilho',
     'settings.color': 'Cor da área',
     'color.blue': 'Azul',
     'color.green': 'Verde',

@@ -2,7 +2,7 @@
 // display settings.
 // Storage can be unavailable (private mode, blocked site data), so every access is guarded.
 const KEY = 'areavisualizer:prefs';
-const REMEMBERED = ['lang', 'units', 'unit', 'shape', 'lengthUnit', 'view', 'theme', 'grid', 'labels', 'measures', 'shadows', 'color'];
+const REMEMBERED = ['lang', 'units', 'unit', 'shape', 'lengthUnit', 'view', 'theme', 'grid', 'labels', 'measures', 'shadows', 'glow', 'color'];
 
 // Regions whose everyday area units are square feet and acres.
 const IMPERIAL_REGION = /-(US|LR|MM)\b/i;

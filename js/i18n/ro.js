@@ -100,6 +100,7 @@ export default {
     'settings.measures': 'Măsurători',
     'settings.labels': 'Etichete',
     'settings.shadows': 'Umbre',
+    'settings.glow': 'Strălucire',
     'settings.color': 'Culoarea suprafeței',
     'color.blue': 'Albastru',
     'color.green': 'Verde',

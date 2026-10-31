@@ -101,6 +101,7 @@ export default {
     'settings.measures': 'Measurements',
     'settings.labels': 'Labels',
     'settings.shadows': 'Shadows',
+    'settings.glow': 'Glow',
     'settings.color': 'Area colour',
     'color.blue': 'Blue',
     'color.green': 'Green',

@@ -23,7 +23,7 @@ export const DEFAULTS = {
   lang: 'en',                 // interface language (js/i18n/)
   units: 'metric',            // measuring system everything is shown in; 'both' shows the two side by side
   theme: 'auto',              // 'auto' follows the system
-  grid: true, labels: true, measures: true, shadows: true,
+  grid: true, labels: true, measures: true, shadows: true, glow: true,
   color: 'blue',
 };
 
@@ -51,6 +51,7 @@ export const VALIDATORS = {
   labels: boolean,
   measures: boolean,
   shadows: boolean,
+  glow: boolean,
   color: v => AREA_COLORS.includes(v),
 };
 

@@ -1,5 +1,6 @@
 // Screenshot via headless Chrome + DevTools protocol, waiting a fixed time (works with WebGL).
-// node --experimental-websocket tools/shot.mjs <out.png> <url> [width] [height] [waitMs] [scrollSelector]import { spawn } from 'node:child_process';
+// node --experimental-websocket tools/shot.mjs <out.png> <url> [width] [height] [waitMs] [scrollSelector]
+import { spawn } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';

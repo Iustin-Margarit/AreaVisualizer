@@ -101,6 +101,7 @@ export default {
     'settings.measures': 'Размеры',
     'settings.labels': 'Подписи',
     'settings.shadows': 'Тени',
+    'settings.glow': 'Свечение',
     'settings.color': 'Цвет площади',
     'color.blue': 'Синий',
     'color.green': 'Зелёный',

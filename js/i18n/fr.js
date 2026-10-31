@@ -99,6 +99,7 @@ export default {
     'settings.measures': 'Mesures',
     'settings.labels': 'Étiquettes',
     'settings.shadows': 'Ombres',
+    'settings.glow': 'Halo',
     'settings.color': 'Couleur de la surface',
     'color.blue': 'Bleu',
     'color.green': 'Vert',

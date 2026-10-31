@@ -99,6 +99,7 @@ export default {
     'settings.measures': 'Medidas',
     'settings.labels': 'Etiquetas',
     'settings.shadows': 'Sombras',
+    'settings.glow': 'Resplandor',
     'settings.color': 'Color del área',
     'color.blue': 'Azul',
     'color.green': 'Verde',
