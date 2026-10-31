@@ -2,7 +2,7 @@ import { formatLengths, escapeHTML } from '../core/format.js';
 import { keyDimension } from '../core/references.js';
 import { fitCamera, zoomAt, panBy, clampPan, toScreen, toWorld } from './2d/camera.js';
 import { gridStep } from './2d/grid.js';
-import { layoutLabels } from './labels.js';
+import { layoutLabels, labelRank } from './labels.js';
 import { drawSilhouette } from './2d/silhouettes.js';
 import { kindColor } from './palette.js';
 import { MODELS } from '../data/models.js';
@@ -167,7 +167,8 @@ export function createView() {
     return text((l + r) / 2, b + 16, capitalize(lm.name), 'lm-text');
   }
 
-  // Name and key size under each object ("Car ↔ 4.5 m"), kept apart by the label layout.
+  // Name and key size under each object ("Car ↔ 4.5 m"), kept apart by the label layout. When
+  // objects crowd, the most telling names win and tiny neighbours share one locator ring.
   function referenceLabels() {
     const items = scene.references.map(ref => {
       const [l, t] = screen(ref.x - ref.w / 2, ref.z - ref.d / 2);
@@ -177,12 +178,18 @@ export function createView() {
       const key = keyDimension(ref);
       const size = `${key.symbol} ${formatLengths(key.value, opts.system, opts.both)}`;
       return {
-        name: ref.name, size, tiny, cy,
+        name: ref.name, size, tiny, cy, rank: labelRank(ref),
         anchorX: (l + r) / 2, anchorY: tiny ? cy + RING_R : b, width: textWidth(`${ref.name} ${size}`) + 4,
       };
     });
-    return layoutLabels(items).map(it => {
-      let out = it.tiny ? `<circle class="locator" cx="${it.anchorX}" cy="${it.cy}" r="${RING_R}"/>` : '';
+    const rings = [];
+    return layoutLabels(items, { maxShift: 1 }).map(it => {
+      let out = '';
+      if (it.tiny && !rings.some(q => Math.hypot(q.x - it.anchorX, q.y - it.cy) < 2 * RING_R + 8)) {
+        out = `<circle class="locator" cx="${it.anchorX}" cy="${it.cy}" r="${RING_R}"/>`;
+        rings.push({ x: it.anchorX, y: it.cy });
+      }
+      if (it.hidden) return out;
       const top = it.y - FONT;
       if (it.shift) {
         out += `<line class="leader" x1="${it.anchorX}" y1="${it.anchorY + 2}" x2="${it.x}" y2="${top}"/>`;

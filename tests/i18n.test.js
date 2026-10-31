@@ -79,9 +79,9 @@ test('numbers are written and read the local way', () => {
 
 test('comparisons speak each language with its grammar', () => {
   const at = (code, m2) => { setLanguage(code); return compare(m2).map(describe); };
-  assert.deepEqual(at('de', 1), ['≈ 55 % eines Einzelbetts', '≈ 26 % eines Kingsize-Betts', '≈ 16 A4-Blätter']);
-  assert.deepEqual(at('ru', 1), ['≈ 55 % односпальной кровати', '≈ 26 % кровати king-size', '≈ 16 листов A4']);
-  assert.deepEqual(at('es', 1e6), ['≈ 2× Ciudad del Vaticano', '≈ 29 % de Central Park', '≈ 46 manzanas de Manhattan']);
+  assert.deepEqual(at('de', 1), ['≈ 55\u00a0% eines Einzelbetts', '≈ 26\u00a0% eines Kingsize-Betts', '≈ 16 A4-Blätter']);
+  assert.deepEqual(at('ru', 1), ['≈ 55\u00a0% односпальной кровати', '≈ 26\u00a0% кровати king-size', '≈ 16 листов A4']);
+  assert.deepEqual(at('es', 1e6), ['≈ 2× Ciudad del Vaticano', '≈ 29\u00a0% de Central Park', '≈ 46 manzanas de Manhattan']);
   setLanguage('ru');
   const tennis = LANDMARKS.find(l => l.id === 'tennis');
   assert.equal(describe({ ...tennis, ratio: 2 }), '≈ 2 теннисных корта');
@@ -90,7 +90,7 @@ test('comparisons speak each language with its grammar', () => {
   assert.equal(describe({ ...tennis, ratio: 1.5 }), '≈ 1,5 теннисного корта');
   assert.equal(describe({ id: 'uk', proper: true, ratio: 1 }), '≈ размером с Великобританию');
   setLanguage('fr');
-  assert.equal(describe({ id: 'belgium', proper: true, ratio: 0.5 }), '≈ 50 % de la Belgique');
+  assert.equal(describe({ id: 'belgium', proper: true, ratio: 0.5 }), '≈ 50\u00a0% de la Belgique');
   assert.equal(objectName('person'), 'Personne');
-  assert.equal(t('legend.square', { side: '1 m' }), 'Chaque carré : 1 m × 1 m');
+  assert.equal(t('legend.square', { side: '1 m' }), 'Chaque carré\u00a0: 1 m × 1 m');
 });

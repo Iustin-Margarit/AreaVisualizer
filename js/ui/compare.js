@@ -9,16 +9,17 @@ import { bindPopover } from './popover.js';
 import { t, unitSymbol } from '../i18n/index.js';
 import { translatePage } from '../i18n/dom.js';
 
-const MAX_OBJECTS = 12;
+const MAX_OBJECTS = 8; // more crowds the view (links from before may still carry up to 12)
 const DRAW_ICON = '<svg class="draw-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="2"/></svg>';
 const size = (ref, system, both) => {
   const key = keyDimension(ref);
   return `${key.symbol} ${formatLengths(key.value, system, both)}`;
 };
+const RESET_ICON = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8a4.5 4.5 0 101.3-3.2"/><path d="M3.5 2.5v2.8h2.8"/></svg>';
 const dot = kind => `<span class="dot" style="--c:${kindColor(kind)}" aria-hidden="true"></span>`;
 const catalog = [...REFERENCES].sort((a, b) => Math.max(a.w, a.d, a.h) - Math.max(b.w, b.d, b.h));
 
-// The "Compare with" card: the objects shown next to the area (remove any, add from the catalog
+// The "For scale" card: the objects shown next to the area (remove any, add from the catalog
 // or your own), and the landmark comparisons (tap one to draw it to scale).
 export function initCompare(el, store) {
   el.innerHTML = `
@@ -101,7 +102,7 @@ export function initCompare(el, store) {
 
       $('.objects-mode').innerHTML = auto
         ? `<span class="muted">${t('compare.auto')}</span>`
-        : `<button type="button" class="link-button" data-auto>${t('compare.reset')}</button>`;
+        : `<button type="button" class="reset-button" data-auto title="${t('compare.resetTitle')}">${RESET_ICON}<span>${t('compare.reset')}</span></button>`;
       chips.innerHTML = references.length
         ? references.map((r, i) => `
           <li class="object-chip">${dot(r.kind)}<span>${escapeHTML(r.name)}</span><small>${size(r, system, both)}</small>

@@ -145,7 +145,7 @@
           <p class="alt-line" id="area-alt" hidden></p>
         </div>
       </div>
-      <p class="field-hint" data-i18n="size.hint">Type the sides to get the area — or type the area to get the sides.</p>
+      <p class="field-hint" data-i18n="size.hint">Type the dimensions to get the area — or the other way around.</p>
 
       <div class="field height-field">
         <button type="button" id="add-height" class="add-button">
@@ -153,7 +153,9 @@
         </button>
         <div class="field-head" id="height-head" hidden>
           <label for="dim-height" data-i18n="height.label">Height</label>
-          <button type="button" id="remove-height" class="link-button" data-i18n="height.remove">Remove</button>
+          <button type="button" id="remove-height" class="reset-button" data-i18n-attr="title:height.removeTitle">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg><span data-i18n="height.remove">Remove</span>
+          </button>
         </div>
         <div class="input-group" id="height-group" hidden>
           <input id="dim-height" type="text" inputmode="decimal" enterkeyhint="done" spellcheck="false">

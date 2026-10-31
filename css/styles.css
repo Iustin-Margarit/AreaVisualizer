@@ -323,7 +323,7 @@ svg { flex: none; }
 
 /* ---------- Size card ---------- */
 .field { display: grid; gap: 6px; min-width: 0; }
-.field-hint { margin: -4px 0 0; color: var(--muted); font-size: 0.78rem; }
+.field-hint { margin: -4px 0 0; color: var(--muted); font-size: 0.78rem; text-wrap: pretty; }
 .alt-line { margin: 0; color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 
 /* The area reads as the answer: tinted with the area colour, with an equals sign in front. */
@@ -548,14 +548,21 @@ svg { flex: none; }
 .chips button:active { transform: scale(0.96); }
 
 /* ---------- Compare card ---------- */
-.subhead { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: -6px; }
+.subhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; margin-bottom: -6px; }
 .subhead .muted { font-size: 0.78rem; }
-.link-button { border: 0; background: none; padding: 0; color: var(--accent); font-size: 0.8rem; font-weight: 550; }
-.link-button:hover { text-decoration: underline; }
 
-.object-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+/* Even rows: name left, size lined up on the right; two columns only where both fit. */
+.object-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 6px;
+}
 .object-chip {
-  display: inline-flex;
+  display: flex;
+  min-width: 0;
   align-items: center;
   gap: 6px;
   padding: 4px 4px 4px 10px;
@@ -565,10 +572,12 @@ svg { flex: none; }
   font-size: 0.88rem;
   animation: pop-in 0.2s ease-out;
 }
-.object-chip small { color: var(--muted); }
+.object-chip > span:not(.dot) { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.object-chip small { color: var(--muted); white-space: nowrap; }
 .object-chip button {
-  width: 24px;
-  height: 24px;
+  flex: none;
+  width: 28px;
+  height: 28px;
   border: 0;
   border-radius: 50%;
   background: transparent;
@@ -577,6 +586,13 @@ svg { flex: none; }
   line-height: 1;
 }
 .object-chip button:hover { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
+/* Fingers need a bigger target (~40 px): a larger × at the row's right edge. */
+@media (pointer: coarse) {
+  .object-chip { padding-block: 2px; padding-right: 2px; }
+  .object-chip button { width: 40px; height: 40px; border-radius: 8px; font-size: 1.25rem; }
+  .reset-button { min-height: 36px; padding: 0 12px; font-size: 0.84rem; }
+  .subhead { min-height: 36px; }
+}
 .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15); flex: none; }
 @keyframes pop-in { from { transform: scale(0.85); opacity: 0; } }
 
@@ -587,14 +603,14 @@ svg { flex: none; }
   gap: 6px;
   min-height: 34px;
   padding: 0 12px;
-  border: 1px dashed color-mix(in srgb, var(--text) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text) 20%, transparent);
   border-radius: 8px;
   background: transparent;
   color: var(--text);
   font-weight: 500;
   font-size: 0.88rem;
 }
-.add-button:hover { background: var(--surface-2); border-style: solid; }
+.add-button:hover { background: var(--surface-2); border-color: color-mix(in srgb, var(--text) 35%, transparent); }
 .add-button svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 
 .popover {
@@ -671,7 +687,7 @@ svg { flex: none; }
   background: color-mix(in srgb, var(--landmark) 12%, transparent);
   font-weight: 600;
 }
-.hint { margin: -6px 0 0; color: var(--muted); font-size: 0.78rem; }
+.hint { margin: -6px 0 0; color: var(--muted); font-size: 0.78rem; text-wrap: pretty; }
 
 /* ---------- Folds (js/ui/folds.js) ---------- */
 /* Wide screens: always open, and the summary is just the heading it replaces (.bare: none at all).
