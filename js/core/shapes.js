@@ -150,6 +150,19 @@ export function shapeTemplate(name, width, depth, areaM2) {
   return centerPolygon(outline.map(([x, z]) => [x * scale, z * scale])).points;
 }
 
+// An SVG path of a shape filling a square of this size, for the small pictures in "My areas".
+export function outlinePath(dims, size = 40) {
+  const room = size - 6, middle = size / 2;
+  if (dims.type === 'circle') {
+    const r = room / 2;
+    return `M${middle - r} ${middle}A${r} ${r} 0 1 1 ${middle + r} ${middle}A${r} ${r} 0 1 1 ${middle - r} ${middle}Z`;
+  }
+  const scale = room / Math.max(dims.width, dims.depth);
+  const [hw, hd] = [dims.width / 2, dims.depth / 2];
+  const points = dims.type === 'polygon' ? dims.points : [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]];
+  return `M${points.map(([x, z]) => `${(x * scale + middle).toFixed(1)} ${(z * scale + middle).toFixed(1)}`).join('L')}Z`;
+}
+
 // The outline moved outward by `distance` (inward if negative), for the rim drawn along it.
 export function offsetPolygon(points, distance) {
   const sign = signedArea(points) > 0 ? 1 : -1;

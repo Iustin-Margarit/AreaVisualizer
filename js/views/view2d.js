@@ -16,6 +16,7 @@ import { translatePage } from '../i18n/dom.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const PAD = { top: 92, right: 60, bottom: 50, left: 52 }; // room for stage controls, dimension lines, labels (+ legend)
+const PHONE_PAD = { top: 52, right: 30, bottom: 46, left: 44 }; // phones keep most controls off the picture
 const MAX_ZOOM_IN = 1000;  // relative to the fitted view
 const MAX_ZOOM_OUT = 5;
 const GRID_MIN_PX = 40;    // grid lines never closer than this
@@ -120,7 +121,8 @@ export function createView(host) {
   function refit() {
     // The legend wraps to two lines on narrow screens; keep labels clear of it.
     const legendHeight = root.querySelector('.stage-legend').offsetHeight;
-    fitted = fitCamera(scene.bounds, vw, vh, { ...PAD, bottom: PAD.bottom + legendHeight });
+    const pad = matchMedia('(max-width: 620px)').matches ? PHONE_PAD : PAD;
+    fitted = fitCamera(scene.bounds, vw, vh, { ...pad, bottom: pad.bottom + legendHeight });
     if (!userMoved) cam = fitted;
   }
 
@@ -299,7 +301,7 @@ export function createView(host) {
       };
     });
     const rings = [];
-    return layoutLabels(items, { maxShift: 2, avoid: written }).map(it => {
+    return layoutLabels(items, { maxShift: 2, avoid: written, within: [6, vw - 6] }).map(it => {
       let out = '';
       if (it.tiny && !rings.some(q => Math.hypot(q.x - it.anchorX, q.y - it.cy) < 2 * RING_R + 8)) {
         out = `<circle class="locator" cx="${it.anchorX}" cy="${it.cy}" r="${RING_R}"/>`;

@@ -13,7 +13,8 @@ const SITE = 'http://localhost:5173/';
 const quick = process.argv.includes('quick');
 // The owner's phone (OnePlus Nord CE2 Lite, display size set large) measures 330 × 661: from a
 // screenshot, the 40 px buttons are 2.78× bigger than CSS pixels on a 917 px wide image.
-const WIDTHS = quick ? [330] : [320, 330, 360, 411, 768, 1280];
+const chosen = process.argv.slice(2).map(Number).filter(Boolean); // npm run audit -- 320 360
+const WIDTHS = chosen.length ? chosen : quick ? [330] : [320, 330, 360, 411, 768, 1280];
 const heightFor = width => (width < 700 ? 661 : 800);
 const TEXT = ['100%', '130%']; // large system text
 const LANGUAGES = ['en', 'es', 'de', 'fr', 'it', 'pt', 'ro', 'ru'];
@@ -67,7 +68,7 @@ const CHECK = `(() => {
       const range = document.createRange();
       range.selectNodeContents(node);
       const t = range.getBoundingClientRect();
-      if (t.right > b.right + 1.5 || t.left < b.left - 1.5) add('the text of ' + name(el) + ' spills out of it', node.textContent.trim().slice(0, 28));
+      if (style.textOverflow !== 'ellipsis' && (t.right > b.right + 1.5 || t.left < b.left - 1.5)) add('the text of ' + name(el) + ' spills out of it', node.textContent.trim().slice(0, 28));
     }
     if (el.scrollWidth > el.clientWidth + 1 && el.clientWidth > 0 && style.overflowX === 'hidden') add(style.textOverflow === 'ellipsis' ? 'shortened with …: ' + name(el) : 'the text of ' + name(el) + ' is cut off', words(el));
 
@@ -157,6 +158,14 @@ const STATES = [
   ['languages closed', click('.lang-button'), 100],
   ['picture preview', click('#picture-button'), 'dialog[open]'],
   ['picture closed', click('[data-picture=close]'), 150],
+  ['my areas, none saved', click('#areas-button'), 200],
+  ['my areas, one saved', click('[data-areas=save]'), 200],
+  ['my areas, renaming', click('[data-areas=rename]'), 200],
+  ['my areas, long name', `document.querySelector('.area-rename').value = 'A rather long name for this place'; document.querySelector('.area-rename').blur()`, 200],
+  ['my areas, area changed', click('#presets button'), 300],
+  ['my areas, saved as new', click('[data-areas=save]'), 200],
+  ['my areas, delete asked', click('[data-areas=delete]'), 150],
+  ['my areas closed', click('#areas-button'), 100],
   // The panels are the same in 3D, so large text is only checked once, above.
   ['3D', click('[data-view="3d"]'), '.view-3d .camera-dock', '100%'],
   ['3D object picked', click('.object-chip'), 400, '100%'],
@@ -186,7 +195,7 @@ async function audit(width, port) {
   await sleep(1500);
   for (const text of width > 411 ? TEXT.slice(0, 1) : TEXT) {
     for (const lang of LANGUAGES) {
-      await b.run(`sessionStorage.setItem('areavisualizer:intro', '1'); localStorage.setItem('areavisualizer:prefs', JSON.stringify({ lang: '${lang}', units: 'metric', view: '2d' }))`);
+      await b.run(`sessionStorage.setItem('areavisualizer:intro', '1'); localStorage.removeItem('areavisualizer:areas'); localStorage.setItem('areavisualizer:prefs', JSON.stringify({ lang: '${lang}', units: 'metric', view: '2d' }))`);
       await b.send('Page.navigate', { url: `${SITE}?a=100&u=m2&o=person,car,house&v=2d` });
       await sleep(1800);
       await b.run(`document.documentElement.style.fontSize = '${text}'; dispatchEvent(new Event('resize'))`);

@@ -21,6 +21,7 @@ import { initStageChrome } from './ui/stage-chrome.js';
 import { initUnitsToggle } from './ui/units-toggle.js';
 import { initShare } from './ui/share.js';
 import { initPicture } from './ui/picture.js';
+import { initAreas } from './ui/areas.js';
 import { initLanguagePicker } from './ui/language-picker.js';
 import { renderCredits } from './ui/credits.js';
 import { initFolds } from './ui/folds.js';
@@ -127,6 +128,7 @@ async function render(state) {
     detail: comparisons.slice(0, 2).map(describe).join(' · '),
     name: areaLabel,
   });
+  areas.update({ state, dims: input.dims, label: areaLabel });
   writeUrl(state);
   savePrefs(state);
   document.title = `${areaText(input.areaM2, input.areaUnit)} · AreaVisualizer`;
@@ -162,6 +164,7 @@ const answer = initAnswer(document.getElementById('answer'), store);
 initStageChrome(stage, store);
 initUnitsToggle(document.getElementById('units-toggle'), store);
 initShare(document.getElementById('share'));
+const areas = initAreas(document.getElementById('areas-button'), document.getElementById('areas-panel'), store, arrange);
 const picture = initPicture(document.getElementById('picture-button'), document.getElementById('picture-dialog'), () => active?.view);
 initLanguagePicker(document.querySelector('.lang-menu'), store);
 initFolds();
@@ -170,6 +173,12 @@ themeToggle.addEventListener('click', () => store.set({ theme: document.document
 systemDark.addEventListener('change', () => render(store.get()));
 store.subscribe(render);
 render(store.get());
+
+// Offline and installing (sw.js). Not on the test server, where old copies would hide changes;
+// phones testing over Wi-Fi don't have it at all, since it needs a secure (https) address.
+if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(console.error));
+}
 
 // The opening splash (index.html): taken away once it has faded out; a click or a key skips ahead.
 const splash = document.querySelector('.intro-splash');

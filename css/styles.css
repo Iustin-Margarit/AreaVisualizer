@@ -636,6 +636,29 @@ svg { flex: none; }
 .draw-tile:hover { background: var(--btn-bg); opacity: 0.88; }
 .draw-tile svg { width: 18px; height: 18px; }
 .stage.is-drawing .stage-start { visibility: hidden; }
+#areas-button.is-saved svg { fill: currentColor; }
+.areas { top: 60px; left: 12px; width: min(320px, calc(100% - 24px)); max-height: calc(100% - 72px); overflow-y: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.areas[hidden] { display: none; }
+.areas .label { margin: 0; }
+.areas-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.picture-action:disabled { opacity: 0.55; cursor: default; }
+.areas-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; }
+.areas-list:empty { display: none; }
+.area-row { display: flex; align-items: center; gap: 2px; padding-right: 2px; border-radius: 10px; }
+.area-row.current { background: var(--surface-2); }
+.area-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 6px; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.area-thumb { flex: none; width: 40px; height: 40px; fill: color-mix(in srgb, var(--shape-stroke) 20%, transparent); stroke: var(--shape-stroke); stroke-width: 1.5; stroke-linejoin: round; }
+.area-row > .area-thumb { margin: 6px 4px 6px 6px; }
+.area-text { min-width: 0; display: grid; }
+.area-text strong, .area-text small { overflow-wrap: anywhere; } /* a long name takes more lines, nothing is cut */
+.areas-actions .picture-action { max-width: 100%; height: auto; min-height: 44px; padding-block: 6px; white-space: normal; text-align: center; }
+.area-text strong { font-weight: 600; }
+.area-text small { color: var(--muted); font-size: 0.75rem; }
+.area-tool { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; }
+.area-tool:hover { background: var(--surface-2); color: var(--text); }
+.area-tool svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.area-confirm { flex: none; height: 36px; padding: 0 10px; border: 0; border-radius: 8px; background: var(--danger); color: #fff; font: inherit; font-size: 0.85rem; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.area-rename { flex: 1; min-width: 0; height: 40px; margin-right: 4px; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text); font: inherit; font-size: 16px; }
 .draw-prompt.refused { color: var(--danger); }
 .view-2d .draft.bad { stroke: var(--danger); opacity: 1; }
 .picture-dialog { width: min(640px, calc(100vw - 24px)); max-width: none; max-height: calc(100dvh - 24px); padding: 12px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); color: var(--text); }
@@ -644,7 +667,6 @@ svg { flex: none; }
 .picture-dialog img { display: block; flex: 0 1 auto; width: 100%; min-height: 0; object-fit: contain; border-radius: 10px; }
 .picture-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .picture-actions .tool { width: 44px; height: 44px; }
-@media (max-width: 400px) { .stage-start .pill-toggle svg { display: none; } } /* room for the buttons across from it */
 .picture-action { flex: 1 1 auto; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
 .picture-action[hidden] { display: none; }
 .picture-action.primary { border-color: transparent; background: var(--btn-bg); color: var(--btn-text); }
@@ -685,7 +707,6 @@ svg { flex: none; }
   .arrange.typing { top: calc(8px + env(safe-area-inset-top) + var(--screen-top, 0px)); bottom: auto; }
   .arrange.typing .arrange-row { display: none; }
   .arrange-sizes input { font-size: 16px; } /* iPhones zoom in on anything smaller */
-  .stage-start { flex-direction: column; align-items: flex-start; }
   /* Drawing: across the bottom of the picture, where the buttons down its right side leave room. */
   .draw-bar { top: auto; bottom: calc(12px + env(safe-area-inset-bottom)); right: 12px; max-width: none; }
   .draw-prompt { flex: 1 1 100%; }
@@ -1342,3 +1363,43 @@ html.intro .header, html.intro .page-title, html.intro .answer, html.intro main 
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes splash-out { to { opacity: 0; visibility: hidden; } }
 @media (prefers-reduced-motion: reduce) { html.intro .intro-splash { display: none; } }
+
+/* ---------- Phones: the picture gets the room ---------- */
+/* The buttons sit in strips above and below the picture instead of on it. A swipe that starts on
+   a strip scrolls the page, so a tall picture never traps anyone. */
+@media (max-width: 620px) {
+  .stage { --strip: 52px; height: min(84vh, 640px); height: min(84svh, 640px); min-height: 400px; }
+  .view-2d, .view-3d { top: var(--strip); box-shadow: 0 -1px 0 var(--border); }
+  .view-3d { bottom: var(--strip); box-shadow: 0 -1px 0 var(--border), 0 1px 0 var(--border); }
+
+  .stage-start { top: 8px; left: 8px; align-items: center; gap: 6px; }
+  .stage-start .pill-toggle { padding: 2px; border-radius: 10px; }
+  .stage-start .pill-toggle button { min-height: 32px; padding: 0 9px; }
+  .stage-start .pill-toggle svg { display: none; }
+  .history-tools { gap: 4px; }
+  .stage-start .tool, #settings-button { width: 32px; height: 36px; }
+  .stage-start .tool:not([aria-expanded="true"]), #settings-button:not([aria-expanded="true"]) { border-color: transparent; background: none; backdrop-filter: none; }
+  .chrome-actions { position: static; }
+  #settings-button { position: absolute; top: 8px; right: 8px; }
+
+  /* On the picture: only the two buttons about the view itself. */
+  #fullscreen-button { position: absolute; top: calc(var(--strip) + 8px); right: 8px; }
+  .stage-tools { top: 54px; right: 8px; }
+
+  .camera-dock, .narrow .camera-dock { bottom: calc(8px - var(--strip)); width: calc(100% - 8px); max-width: none; padding: 0; border: 0; background: none; backdrop-filter: none; }
+  .stage-legend, .view-3d .stage-legend { left: 8px; bottom: 8px; right: 56px; }
+  .legend-hint { animation: hint-out 0.4s 6s forwards; } /* it has said what it had to say */
+
+  .scroll-edge { top: calc(var(--strip) + 8px); bottom: 12px; }
+  .scroll-edge.right { top: calc(var(--strip) + 108px); }
+}
+/* A finger pinches to zoom: no need for buttons to do it. */
+@media (max-width: 620px) and (pointer: coarse) {
+  .stage-tools [data-act="in"], .stage-tools [data-act="out"] { display: none; }
+}
+@keyframes hint-out { to { opacity: 0; visibility: hidden; } }
+@media (max-width: 340px) {
+  .stage-start { gap: 4px; }
+  .stage-start .pill-toggle button { padding: 0 7px; }
+  .history-tools { gap: 2px; }
+}

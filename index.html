@@ -24,6 +24,9 @@
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='3' width='26' height='26' rx='6' fill='%231d1d20'/%3E%3Cpath d='M11.7 3v26M20.3 3v26M3 11.7h26M3 20.3h26' stroke='%23fff' stroke-opacity='.5' stroke-width='1.5'/%3E%3C/svg%3E">
+  <!-- Installing the site on a phone or computer (sw.js keeps it working offline). -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <!-- Pick light or dark (remembered choice, else the system's) before the first paint. -->
   <script>
     let theme;
@@ -234,6 +237,9 @@
             <button id="picture-button" class="tool" type="button" data-i18n-attr="aria-label:picture.save;title:picture.save">
               <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 014.5 6h2L8 4h4l1.5 2h2A1.5 1.5 0 0117 7.5v7a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 013 14.5z"/><circle cx="10" cy="10.8" r="2.8"/></svg>
             </button>
+            <button id="areas-button" class="tool" type="button" data-i18n-attr="aria-label:areas.title;title:areas.title" aria-expanded="false" aria-controls="areas-panel">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 3h9a1 1 0 011 1v13L10 13.4 4.5 17V4a1 1 0 011-1z"/></svg>
+            </button>
           </div>
         </div>
         <div class="chrome-actions">
@@ -278,6 +284,12 @@
             <span class="arrange-unit"></span>
           </div>
         </aside>
+        <!-- Saved areas, kept on this device (ui/areas.js). -->
+        <div id="areas-panel" class="popover areas" role="dialog" data-i18n-attr="aria-label:areas.title" hidden>
+          <p class="label" data-i18n="areas.title">My areas</p>
+          <div class="areas-actions"></div>
+          <ul class="areas-list"></ul>
+        </div>
         <div id="settings-panel" class="popover settings" role="dialog" data-i18n-attr="aria-label:settings.title" hidden>
           <div class="popover-row">
             <span class="label" data-i18n="settings.theme">Theme</span>
