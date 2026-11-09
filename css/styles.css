@@ -279,6 +279,7 @@ svg { flex: none; }
   border-radius: var(--radius);
   padding: 20px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr); /* one long row can't stretch the whole card */
   gap: 14px;
   align-content: start;
 }
@@ -294,6 +295,8 @@ svg { flex: none; }
 .size-card { grid-area: size; }
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .card-head .segmented button { padding: 0 10px; }
+/* These languages' shape names only fit the row without the icons (tools/phone-audit.mjs checks it). */
+:is(:lang(es), :lang(fr), :lang(it), :lang(pt)) #shape-picker svg { display: none; }
 .card-head-title { display: flex; align-items: center; gap: 10px; }
 .reset-button {
   display: inline-flex;

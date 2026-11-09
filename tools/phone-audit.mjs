@@ -50,6 +50,10 @@ const CHECK = `(() => {
     if (parent && !placed && !scrolls && box(parent).width > 0 && css(parent).display !== 'inline') {
       const p = box(parent);
       if (b.right > p.right + 1.5 || b.left < p.left - 1.5 || (!inline && (b.bottom > p.bottom + 1.5 || b.top < p.top - 1.5))) add(name(el) + ' sticks out of ' + name(parent), words(el));
+      // Inside the box but over its inner margin: the row is too wide for the box.
+      const room = css(parent);
+      const [padLeft, padRight] = [parseFloat(room.paddingLeft), parseFloat(room.paddingRight)];
+      if ((padRight >= 6 && b.right > p.right - padRight - parseFloat(room.borderRightWidth) + 1.5) || (padLeft >= 6 && b.left < p.left + padLeft + parseFloat(room.borderLeftWidth) - 1.5)) add(name(el) + ' runs into the margin of ' + name(parent), words(el));
     }
 
     for (let a = el.parentElement, from = el; a && a !== document.body; from = a, a = a.parentElement) {
@@ -78,7 +82,7 @@ const CHECK = `(() => {
 
   // A list's rows end in the same place (buttons at the end of each row form a straight column).
   for (const list of root.querySelectorAll('ul')) {
-    const ends = [...list.children].filter(li => shown(li) && li.lastElementChild && shown(li.lastElementChild) && !ignored(li)).map(li => box(li).right - box(li.lastElementChild).right);
+    const ends = [...list.children].filter(li => shown(li) && li.lastElementChild?.tagName === 'BUTTON' && shown(li.lastElementChild) && !ignored(li)).map(li => box(li).right - box(li.lastElementChild).right);
     if (ends.length > 1 && Math.max(...ends) - Math.min(...ends) > 1.5) add('the rows of ' + name(list) + ' don\\'t line up', words(list));
   }
 
