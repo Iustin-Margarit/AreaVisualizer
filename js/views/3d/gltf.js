@@ -57,5 +57,10 @@ export function placeModel({ root, box }, spec, ref, night) {
     const glow = o.material.userData.glow;
     if (glow) o.material.emissive.copy(night ? glow : new THREE.Color(0));
   });
-  return copy;
+  if (!ref.resized) return copy;
+  // Sizes the visitor typed: stretched to match, along each direction of the object as placed.
+  const stretched = new THREE.Group();
+  stretched.scale.set(ref.w / (size.x * s), ref.h / (size.y * s), ref.d / (size.z * s));
+  stretched.add(copy);
+  return stretched;
 }

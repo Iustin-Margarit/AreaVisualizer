@@ -19,9 +19,11 @@ export function loadPrefs() {
   }
 }
 
+// While a link in the other measuring system is open, `ownUnits` holds the visitor's usual ones.
 export function savePrefs(state) {
+  const saved = { ...state, ...state.ownUnits };
   try {
-    localStorage.setItem(KEY, JSON.stringify(Object.fromEntries(REMEMBERED.map(k => [k, state[k]]))));
+    localStorage.setItem(KEY, JSON.stringify(Object.fromEntries(REMEMBERED.map(k => [k, saved[k]]))));
   } catch {
     // Not saving preferences is fine.
   }

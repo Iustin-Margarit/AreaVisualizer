@@ -78,6 +78,17 @@ test('layoutLabels keeps labels by their objects and pushes overlaps down', () =
   assert.deepEqual(layoutLabels([]), []);
 });
 
+test('layoutLabels slides a label off the picture of the object next to it', () => {
+  const tree = { left: 60, right: 120, top: 0, bottom: 60 };
+  const [person, treeLabel] = layoutLabels([
+    { anchorX: 40, anchorY: 20, width: 80 },
+    { anchorX: 90, anchorY: 60, width: 40, box: tree },
+  ]);
+  assert.equal(person.shift, 0);
+  assert.ok(person.x + 40 < tree.left, 'clear of the tree');
+  assert.equal(treeLabel.x, 90, 'never pushed off its own picture');
+});
+
 test('layoutLabels places important labels first and leaves out what would stack too high', () => {
   const at = (id, rank) => ({ id, rank, anchorX: 100, anchorY: 50, width: 60 });
   const out = layoutLabels([at('small', 3), at('person', 1), at('car', 2)], { maxShift: 1 });

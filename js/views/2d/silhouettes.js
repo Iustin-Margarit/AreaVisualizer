@@ -14,6 +14,35 @@ const mirrorX = pts => pts.map(([x, y]) => [-x, y]);
 const DRAW = {
   box: (w, d) => rect(-w / 2, -d / 2, w, d, Math.min(w, d) * 0.08),
 
+  bed: (w, d) =>
+    rect(-w / 2, -d / 2, w, d, w * 0.02) +
+    rect(-w * 0.2, -d * 0.47, w * 0.68, d * 0.94, w * 0.02, 'light') +
+    rect(-w / 2, -d / 2, w * 0.06, d, 0, 'shade') +
+    (d > 1.2
+      ? rect(-w * 0.41, -d * 0.44, w * 0.18, d * 0.4, w * 0.03, 'white') + rect(-w * 0.41, d * 0.04, w * 0.18, d * 0.4, w * 0.03, 'white')
+      : rect(-w * 0.41, -d * 0.36, w * 0.18, d * 0.72, w * 0.03, 'white')),
+
+  sofa: (w, d) =>
+    rect(-w / 2, -d / 2, w, d, w * 0.03) +
+    rect(-w / 2, -d / 2, w, d * 0.26, w * 0.03, 'shade') +
+    rect(-w / 2, -d / 2, w * 0.09, d, w * 0.02, 'shade') +
+    rect(w * 0.41, -d / 2, w * 0.09, d, w * 0.02, 'shade') +
+    rect(-w * 0.005, -d * 0.24, w * 0.01, d * 0.74, 0, 'shade'),
+
+  table: (w, d) => rect(-w / 2, -d / 2, w, d, Math.min(w, d) * 0.05) + rect(-w * 0.42, -d * 0.36, w * 0.84, d * 0.72, Math.min(w, d) * 0.03, 'light'),
+
+  desk: (w, d) => rect(-w / 2, -d / 2, w, d, Math.min(w, d) * 0.03) + rect(w * 0.12, -d * 0.4, w * 0.3, d * 0.8, 0, 'shade'),
+
+  wardrobe: (w, d) => rect(-w / 2, -d / 2, w, d) + rect(-w * 0.005, -d / 2, w * 0.01, d, 0, 'shade') + rect(-w / 2, d * 0.42, w, d * 0.08, 0, 'shade'),
+
+  fridge: (w, d) => rect(-w / 2, -d / 2, w, d, w * 0.05) + rect(-w / 2, d * 0.32, w, d * 0.18, 0, 'shade'),
+
+  bathtub: (w, d) => rect(-w / 2, -d / 2, w, d, d * 0.2) + rect(-w * 0.42, -d * 0.36, w * 0.84, d * 0.72, d * 0.3, 'light'),
+
+  washer: (w, d) => rect(-w / 2, -d / 2, w, d, w * 0.04) + circle(0, 0, w * 0.32, 'shade'),
+
+  parking: (w, d) => rect(-w / 2, -d / 2, w, d, 0, 'light') + rect(-w / 2, -d / 2, w, d * 0.04, 0, 'white') + rect(-w / 2, d * 0.46, w, d * 0.04, 0, 'white'),
+
   phone: (w, d) =>
     rect(-w / 2, -d / 2, w, d, w * 0.18) +
     rect(-w * 0.42, -d * 0.44, w * 0.84, d * 0.88, w * 0.1, 'shade'),

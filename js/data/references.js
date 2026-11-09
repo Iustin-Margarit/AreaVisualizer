@@ -28,6 +28,17 @@ const RAW = [
   { id: 'goldengate', kind: 'bridge', w: 2737, d: 27,   h: 227 },
   { id: 'fuji',      kind: 'mountain', w: 35000, d: 35000, h: 3776, show: 'height' },
   { id: 'moon',      kind: 'moon',     w: 3474800, d: 3474800, h: 3474800 },
+  // Furniture to arrange in a room: only added by hand (`manual`), never picked automatically.
+  { id: 'bedsingle', kind: 'bed',      w: 2,    d: 0.9,  h: 0.55, manual: true },
+  { id: 'beddouble', kind: 'bed',      w: 2,    d: 1.6,  h: 0.55, manual: true },
+  { id: 'sofa',      kind: 'sofa',     w: 2.1,  d: 0.9,  h: 0.85, manual: true },
+  { id: 'table',     kind: 'table',    w: 1.6,  d: 0.9,  h: 0.75, manual: true },
+  { id: 'desk',      kind: 'desk',     w: 1.4,  d: 0.7,  h: 0.75, manual: true },
+  { id: 'wardrobe',  kind: 'wardrobe', w: 1.8,  d: 0.6,  h: 2.1,  manual: true },
+  { id: 'fridge',    kind: 'fridge',   w: 0.7,  d: 0.7,  h: 1.8,  manual: true },
+  { id: 'bathtub',   kind: 'bathtub',  w: 1.7,  d: 0.75, h: 0.55, manual: true },
+  { id: 'washer',    kind: 'washer',   w: 0.6,  d: 0.6,  h: 0.85, manual: true },
+  { id: 'parkingspot', kind: 'parking', w: 5,   d: 2.5,  h: 0.02, manual: true },
 ];
 
 // A model's size [x, y, z] once laid down and turned so its length runs along x.

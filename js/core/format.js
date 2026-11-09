@@ -36,6 +36,9 @@ export function parseNumber(text, decimal = decimalMark()) {
 export const escapeHTML = s =>
   String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
+// Text for matching what someone typed: no capitals, no accents ("Zürich" finds "zurich").
+export const searchKey = s => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+
 const FT = 0.3048;
 
 export const OTHER_SYSTEM = { metric: 'imperial', imperial: 'metric' };
@@ -43,10 +46,19 @@ export const OTHER_SYSTEM = { metric: 'imperial', imperial: 'metric' };
 // A number with its unit symbol ("25 m²", or "25 м²" in Russian).
 export const withUnit = (n, unit) => `${formatNumber(n)} ${unitSymbol(unit)}`;
 
+// Everyday lengths read as feet and inches ("5 ft 9 in"), to the nearest inch.
+function feetAndInches(ft) {
+  const total = Math.round(ft * 12);
+  const inches = total % 12;
+  const feet = withUnit((total - inches) / 12, 'ft');
+  return inches ? `${feet} ${withUnit(inches, 'in')}` : feet;
+}
+
 export function formatLength(m, system = 'metric') {
   if (system === 'imperial') {
     const ft = m / FT;
     if (ft < 1) return withUnit(ft * 12, 'in');
+    if (ft < 100) return feetAndInches(ft);
     if (ft < 5279.99) return withUnit(ft, 'ft'); // tolerance: 1 mi in meters ÷ ft isn't exactly 5280
     return withUnit(ft / 5280, 'mi');
   }

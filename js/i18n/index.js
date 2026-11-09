@@ -45,6 +45,8 @@ export const objectName = id => current.objects?.[id] ?? en.objects[id] ?? id;
 // for places.
 export const landmarkText = id => current.landmarks?.[id] ?? en.landmarks[id];
 
+export const volumeText = id => current.volumes?.[id] ?? en.volumes[id] ?? landmarkText(id);
+
 export const landmarkName = id => {
   const text = landmarkText(id);
   return text.name ?? text.one;

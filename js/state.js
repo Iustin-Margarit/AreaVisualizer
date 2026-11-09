@@ -1,8 +1,8 @@
 import { UNITS, LENGTH_UNITS, SYSTEM_UNITS, isUnit, isLengthUnit } from './core/units.js';
-import { isShape } from './core/shapes.js';
+import { isShape, MAX_CORNERS, crosses } from './core/shapes.js';
 import { isLandmarkChoice } from './core/landmarks.js';
 import { isObjectToken } from './core/references.js';
-import { inSystem } from './core/input.js';
+import { inSystem, systemOf } from './core/input.js';
 import { VIEWS } from './views/registry.js';
 import { isLanguage } from './i18n/index.js';
 
@@ -18,7 +18,10 @@ export const DEFAULTS = {
   height: null, heightUnit: 'm', // optional: how tall the area is (a room, a box); null when flat
   view: '3d',                 // falls back to 2D where 3D can't run (main.js)
   compare: 'none',            // landmark drawn next to the area: 'none' or the id the visitor picked
+  comparePlace: null,         // where that landmark was moved to: { id, x, z, r } (only for that id)
   objects: null,              // null: objects picked to suit the size; or the visitor's own list
+  points: null,               // the corners of a custom shape: [[x, z], …] in meters
+  second: null,               // a second area to compare: { shape, width, length, unit, x?, z?, r? }
   // Display settings (remembered per visitor, not part of links).
   lang: 'en',                 // interface language (js/i18n/)
   units: 'metric',            // measuring system everything is shown in; 'both' shows the two side by side
@@ -43,7 +46,12 @@ export const VALIDATORS = {
   heightUnit: isLengthUnit,
   view: id => VIEWS.some(v => v.id === id),
   compare: isLandmarkChoice,
-  objects: v => v === null || (Array.isArray(v) && v.length <= 12 && v.every(isObjectToken)),
+  comparePlace: v => v === null || (!!v && typeof v.id === 'string' && Number.isFinite(v.x) && Number.isFinite(v.z) && v.r >= 0 && v.r < 360),
+  objects: v => v === null || (Array.isArray(v) && v.length <= 40 && v.every(isObjectToken)),
+  points: v => v === null || (Array.isArray(v) && v.length >= 3 && v.length <= MAX_CORNERS &&
+    v.every(p => Array.isArray(p) && p.length === 2 && p.every(n => Number.isFinite(n) && Math.abs(n) <= 1e8)) && !crosses(v)),
+  second: v => v === null || (!!v && ['rectangle', 'circle'].includes(v.shape) && positive(1e8)(v.width) && positive(1e8)(v.length) && isLengthUnit(v.unit) &&
+    (v.x === undefined || (Number.isFinite(v.x) && Number.isFinite(v.z) && v.r >= 0 && v.r < 360))),
   lang: isLanguage,
   units: v => UNIT_SYSTEMS.includes(v),
   theme: v => ['auto', 'light', 'dark'].includes(v),
@@ -65,10 +73,11 @@ export function sanitize(partial) {
 }
 
 // Brings older links up to date ('square' became a rectangle with equal sides) and shows the size
-// in the visitor's measuring system — a link made in feet opens in meters for a metric visitor.
+// in the measuring system the state asks for.
 export function normalize(state) {
   let s = state;
   if (s.shape === 'square') s = { ...s, shape: 'rectangle', ratio: 1, length: s.width };
+  if (s.shape === 'custom' && !s.points) s = { ...s, shape: 'rectangle' };
   return s.units === 'both' ? s : { ...s, ...inSystem(s, s.units) };
 }
 
@@ -82,7 +91,11 @@ export function initialState({ imperial = false, lang = 'en', phone = false, pre
   const system = imperial ? 'imperial' : 'metric';
   const base = { ...DEFAULTS, ...SYSTEM_UNITS[system], units: system, lang, ...sanitize(prefs) };
   const [width, length] = FIRST_SIDES[phone ? 'phone' : 'wide'][base.lengthUnit] ?? LENGTH_UNITS[base.lengthUnit].start;
-  return normalize({ ...base, value: UNITS[base.unit].start, width, length, ...sanitize(url) });
+  const first = { ...base, value: UNITS[base.unit].start, width, length, ...sanitize(url) };
+  // A shared link keeps the sender's numbers: a visitor on the other measuring system sees both
+  // for now, and goes on remembering the units they normally use (prefs.js).
+  const foreign = ('width' in url || 'value' in url) && base.units !== 'both' && systemOf(first) !== base.units;
+  return normalize(foreign ? { ...first, units: 'both', ownUnits: { units: base.units, unit: base.unit, lengthUnit: base.lengthUnit } } : first);
 }
 
 // Minimal observable store. `set` merges a patch and notifies subscribers.

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { buildModel, createKit, MODEL_KINDS, frustumGeometry, polyhedron } from '../js/views/3d/models.js';
-import { orbitBasis, fitDistance, gridLevels } from '../js/views/3d/math.js';
+import { orbitBasis, fitDistance, fitCentered, gridLevels } from '../js/views/3d/math.js';
 import { angleDelta, isDoubleTap } from '../js/views/3d/gestures.js';
 import { easeOutBack, easeOutCubic } from '../js/views/3d/effects.js';
 import { keyDimension } from '../js/core/references.js';
@@ -75,6 +75,25 @@ test('orbitBasis gives an orthonormal camera frame looking at the target', () =>
   close(toCamera[1], Math.sin(0.5));
   const front = orbitBasis(0, 0);
   assert.deepEqual(front.right.map(v => Math.round(v)), [1, 0, 0], 'from the front, +x is to the right');
+});
+
+test('fitCentered centres lopsided scenes on screen and comes closer', () => {
+  const basis = orbitBasis(0.5, -0.5);
+  const [tanX, tanY] = [0.6, 0.4];
+  const points = [[-5, 0, -5], [5, 0, -5], [-5, 0, 5], [5, 0, 5], [9, 0, 5], [9, 14, 5]];
+  const { distance, shift } = fitCentered(points, basis, tanX, tanY);
+  assert.ok(distance < fitDistance(points, basis, tanX, tanY), 'no wasted room');
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const screen = points.map(p => {
+    const q = p.map((v, k) => v - shift[k]);
+    const w = distance + dot(q, basis.forward);
+    return [dot(q, basis.right) / (w * tanX), dot(q, basis.up) / (w * tanY)];
+  });
+  for (const axis of [0, 1]) {
+    const values = screen.map(s => s[axis]);
+    assert.ok(Math.max(...values) <= 1 + 1e-6 && Math.min(...values) >= -1 - 1e-6, 'everything stays in view');
+    assert.ok(Math.abs(Math.max(...values) + Math.min(...values)) < 0.02, 'centred');
+  }
 });
 
 test('fitDistance frames every point, tightly', () => {

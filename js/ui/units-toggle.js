@@ -7,7 +7,7 @@ export function initUnitsToggle(el, store) {
     const units = e.target.closest('[data-units]')?.dataset.units;
     const s = store.get();
     if (!units || units === s.units) return;
-    store.set({ units, ...(units === 'both' ? {} : inSystem(s, units)) });
+    store.set({ units, ownUnits: null, ...(units === 'both' ? {} : inSystem(s, units)) });
   });
 
   const sync = s => el.querySelectorAll('[data-units]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.units === s.units)));

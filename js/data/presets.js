@@ -2,7 +2,7 @@
 // sets the size; courts and pools use their official dimensions in that system. Buttons show the
 // area ("100 m²") or, with a `key`, a translated name ("Tennis court").
 const area = (value, unit, key) => ({ key, value, unit, patch: { mode: 'area', shape: 'rectangle', ratio: 1, value, unit } });
-const sides = (key, width, length, lengthUnit) => ({ key, patch: { mode: 'dims', shape: 'rectangle', width, length, lengthUnit } });
+const sides = (key, width, length, lengthUnit) => ({ key, patch: { mode: 'dims', shape: 'rectangle', width, length, lengthUnit, unit: lengthUnit === 'm' ? 'm2' : 'ft2' } });
 
 export const PRESETS = {
   metric: [

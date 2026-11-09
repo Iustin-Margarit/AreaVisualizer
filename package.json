@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "python tools/dev-server.py",
-    "test": "node --test"
+    "test": "node --test",
+    "audit": "node --no-warnings --experimental-websocket tools/phone-audit.mjs"
   },
   "devDependencies": {
     "@gltf-transform/core": "4.1.1",

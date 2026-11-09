@@ -24,6 +24,7 @@ const C = {
   concrete: '#9aa0a6',
   snow: '#f4f7fa', foothills: '#5f8a4f',
   moon: '#a9a9a3',
+  sheet: '#f1f3f6', pillow: '#ffffff', cushion: '#8aa898', water: '#9fd0e8', seam: '#5b6470',
 };
 
 // What glows at night (emissive colours; nothing glows by day).
@@ -104,6 +105,84 @@ export function frustumGeometry(bottom, top) {
 
 const BUILDERS = {
   box: ({ w, h, d }, k) => [box(w, h, d, k.mat(kindColor('box')))],
+
+  // Furniture: long side along x; a bed's head is at -x, the back of a sofa or wardrobe at -z.
+  bed: ({ w, h, d }, k) => {
+    const frame = k.mat(kindColor('bed')), sheet = k.mat(C.sheet), pillow = k.mat(C.pillow);
+    const pillows = d > 1.2 ? [-d * 0.24, d * 0.24] : [0];
+    return [
+      box(w * 0.94, h * 0.55, d, frame, w * 0.03),
+      box(w * 0.94, h * 0.3, d * 0.96, sheet, w * 0.03, h * 0.55),
+      box(w * 0.06, h, d, frame, -w * 0.47),
+      ...pillows.map(z => box(w * 0.16, h * 0.15, d > 1.2 ? d * 0.4 : d * 0.72, pillow, -w * 0.32, h * 0.85, z)),
+    ];
+  },
+
+  sofa: ({ w, h, d }, k) => {
+    const body = k.mat(kindColor('sofa')), cushion = k.mat(C.cushion);
+    const parts = [
+      box(w, h * 0.3, d, body),
+      box(w, h * 0.7, d * 0.25, body, 0, h * 0.3, -d * 0.375),
+      box(w * 0.4, h * 0.2, d * 0.72, cushion, -w * 0.205, h * 0.3, d * 0.13),
+      box(w * 0.4, h * 0.2, d * 0.72, cushion, w * 0.205, h * 0.3, d * 0.13),
+    ];
+    for (const sx of [-1, 1]) parts.push(box(w * 0.09, h * 0.4, d * 0.75, body, sx * w * 0.455, h * 0.3, d * 0.125));
+    return parts;
+  },
+
+  table: ({ w, h, d }, k) => {
+    const wood = k.mat(kindColor('table')), dark = k.mat(C.woodDark);
+    const top = h * 0.06, leg = Math.min(w, d) * 0.08;
+    const parts = [box(w, top, d, wood, 0, h - top)];
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) parts.push(box(leg, h - top, leg, dark, sx * (w - leg) / 2, 0, sz * (d - leg) / 2));
+    return parts;
+  },
+
+  desk: ({ w, h, d }, k) => {
+    const wood = k.mat(kindColor('desk')), dark = k.mat(C.woodDark);
+    const top = h * 0.06, side = w * 0.03;
+    return [
+      box(w, top, d, wood, 0, h - top),
+      box(side, h - top, d, dark, -(w - side) / 2),
+      box(w * 0.32, h - top, d, dark, w * 0.34),
+    ];
+  },
+
+  wardrobe: ({ w, h, d }, k) => {
+    const body = k.mat(kindColor('wardrobe')), seam = k.mat(C.seam);
+    return [
+      box(w, h, d * 0.96, body, 0, 0, -d * 0.02),
+      box(w * 0.012, h * 0.96, d * 0.04, seam, 0, h * 0.02, d * 0.48),
+      box(w * 0.02, h * 0.14, d * 0.03, seam, -w * 0.04, h * 0.45, d * 0.485),
+      box(w * 0.02, h * 0.14, d * 0.03, seam, w * 0.04, h * 0.45, d * 0.485),
+    ];
+  },
+
+  fridge: ({ w, h, d }, k) => {
+    const body = k.mat(kindColor('fridge')), seam = k.mat(C.seam);
+    return [
+      box(w, h, d * 0.96, body, 0, 0, -d * 0.02),
+      box(w, h * 0.01, d * 0.04, seam, 0, h * 0.62, d * 0.48),
+      box(w * 0.04, h * 0.2, d * 0.03, seam, -w * 0.4, h * 0.68, d * 0.485),
+    ];
+  },
+
+  bathtub: ({ w, h, d }, k) => [
+    box(w, h, d, k.mat(kindColor('bathtub'))),
+    box(w * 0.86, h * 0.02, d * 0.76, k.mat(C.water), 0, h * 0.98),
+  ],
+
+  washer: ({ w, h, d }, k) => [
+    box(w, h, d * 0.96, k.mat(kindColor('washer')), 0, 0, -d * 0.02),
+    box(w * 0.56, h * 0.42, d * 0.04, k.mat(C.screen), 0, h * 0.2, d * 0.48),
+    box(w * 0.86, h * 0.1, d * 0.04, k.mat(C.seam), 0, h * 0.84, d * 0.48),
+  ],
+
+  parking: ({ w, h, d }, k) => [
+    box(w, h, d, k.mat(kindColor('parking'))),
+    box(w * 0.96, h, d * 0.05, k.mat(C.pillow), 0, 0, -d * 0.475),
+    box(w * 0.96, h, d * 0.05, k.mat(C.pillow), 0, 0, d * 0.475),
+  ],
 
   phone: ({ w, h, d }, k) => [
     box(w, h * 0.75, d, k.mat(kindColor('phone'))),

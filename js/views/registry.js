@@ -3,7 +3,7 @@
 // `layout` tells buildScene where to stand the reference objects for this view.
 // `isSupported` (optional) hides a view on devices that can't run it.
 export const VIEWS = [
-  { id: '2d', label: '2D', layout: 'front', load: () => import('./view2d.js') },
+  { id: '2d', label: '2D', layout: 'side', load: () => import('./view2d.js') },
   {
     id: '3d', label: '3D', layout: 'side', load: () => import('./view3d.js'),
     isSupported: () => 'WebGLRenderingContext' in globalThis,

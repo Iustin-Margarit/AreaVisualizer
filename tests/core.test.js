@@ -6,7 +6,7 @@ import { formatNumber, parseNumber, formatLength, formatVolume, formatVolumes } 
 import { pickReferences } from '../js/core/references.js';
 import { compare, describe } from '../js/core/comparisons.js';
 import { buildScene } from '../js/core/scene.js';
-import { landmarkShape, chooseLandmark } from '../js/core/landmarks.js';
+import { landmarkShape, chooseLandmark, loadWorld } from '../js/core/landmarks.js';
 import { LANDMARKS } from '../js/data/landmarks.js';
 
 const close = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) <= eps * Math.max(1, Math.abs(b)), `${a} ≉ ${b}`);
@@ -69,6 +69,10 @@ test('formatting', () => {
   assert.equal(formatLength(7.0710678), '7.07 m');
   assert.equal(formatLength(2500), '2.5 km');
   assert.equal(formatLength(0.3048, 'imperial'), '1 ft');
+  assert.equal(formatLength(1.75, 'imperial'), '5 ft 9 in');
+  assert.equal(formatLength(3.6576, 'imperial'), '12 ft', 'no "0 in"');
+  assert.equal(formatLength(1.8287, 'imperial'), '6 ft', 'rounding up to a whole foot carries');
+  assert.equal(formatLength(50, 'imperial'), '164 ft', 'long lengths stay in feet');
   assert.equal(formatLength(0.1524, 'imperial'), '6 in');
 });
 
@@ -142,7 +146,8 @@ const ringArea = ring => Math.abs(ring.reduce((sum, [x, z], i) => {
   return sum + x * z2 - x2 * z;
 }, 0)) / 2;
 
-test('landmark shapes are drawn at their real area, with markings inside', () => {
+test('landmark shapes are drawn at their real area, with markings inside', async () => {
+  await loadWorld();
   for (const l of LANDMARKS) {
     const shape = landmarkShape(l);
     if (l.id === 'earth') { assert.equal(shape, null, 'too spread out to draw'); continue; }

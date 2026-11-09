@@ -4,17 +4,23 @@ import { loadPrefs, savePrefs, prefersImperial } from './prefs.js';
 import { fromM2, naturalAreaUnit } from './core/units.js';
 import { resolveInput } from './core/input.js';
 import { buildScene } from './core/scene.js';
-import { compare } from './core/comparisons.js';
-import { chooseLandmark, landmarkShape } from './core/landmarks.js';
+import { compare, describe } from './core/comparisons.js';
+import { chooseLandmark, landmarkShape, needsWorld, loadWorld } from './core/landmarks.js';
+import { LANDMARKS } from './data/landmarks.js';
+import { circleRing, secondArea } from './core/second.js';
 import { withUnit, formatVolumes, OTHER_SYSTEM } from './core/format.js';
 import { t, setLanguage, detectLanguage, landmarkName } from './i18n/index.js';
 import { translatePage } from './i18n/dom.js';
 import { initControls } from './ui/controls.js';
 import { initCompare } from './ui/compare.js';
+import { initAnswer } from './ui/answer.js';
+import { initArrange } from './ui/arrange.js';
+import { initHistory } from './ui/history.js';
 import { renderResults } from './ui/results.js';
 import { initStageChrome } from './ui/stage-chrome.js';
 import { initUnitsToggle } from './ui/units-toggle.js';
 import { initShare } from './ui/share.js';
+import { initPicture } from './ui/picture.js';
 import { initLanguagePicker } from './ui/language-picker.js';
 import { renderCredits } from './ui/credits.js';
 import { initFolds } from './ui/folds.js';
@@ -46,7 +52,7 @@ async function showView(id) {
   try {
     const { createView } = await getView(id).load();
     if (token !== loading) return false;
-    view = createView();
+    view = createView(arrange.host);
     view.mount(stage);
   } catch (err) {
     console.error(err);
@@ -72,7 +78,7 @@ function applyDisplay(state) {
   const root = document.documentElement;
   root.dataset.mode = dark ? 'dark' : 'light';
   root.dataset.area = state.color;
-  document.querySelector('meta[name="theme-color"]').content = dark ? '#0e1116' : '#e9eef4';
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = dark ? '#0e0e0f' : '#ffffff'; });
   themeToggle.setAttribute('aria-label', t(dark ? 'theme.toLight' : 'theme.toDark'));
   themeToggle.title = t(dark ? 'theme.toLight' : 'theme.toDark');
   return dark;
@@ -81,12 +87,23 @@ function applyDisplay(state) {
 const areaText = (m2, unit) => withUnit(fromM2(m2, unit), unit);
 
 // Numbers rounded so that converting between systems (float noise) doesn't count as a change.
+// Where objects stand isn't part of it: moving one shouldn't move the camera.
 const sceneKey = scene => JSON.stringify(
-  [scene.shape, scene.height, scene.references.map(r => [r.token, r.w, r.d, r.h, r.x, r.z]), scene.landmark?.id],
+  [scene.shape, scene.height, scene.references.map(r => [r.id, r.w, r.d, r.h]), scene.landmark?.id, scene.second?.shape.width, scene.second?.shape.depth],
   (_, v) => (typeof v === 'number' ? Number(v.toPrecision(9)) : v),
 );
 
 async function render(state) {
+  const wanted = LANDMARKS.find(l => l.id === state.compare);
+  if (needsWorld(wanted)) { // a country whose outline isn't downloaded yet
+    try {
+      await loadWorld();
+    } catch (err) {
+      console.error(err);
+      toast(t(navigator.onLine ? 'view.failed' : 'view.offline', { view: landmarkName(wanted.id) }));
+    }
+    if (store.get() !== state) return;
+  }
   const night = applyDisplay(state);
   const input = resolveInput(state);
   const both = state.units === 'both';
@@ -95,13 +112,21 @@ async function render(state) {
   const volumeLabel = input.height ? formatVolumes(input.volumeM3, input.system, both) : '';
   const drawn = chooseLandmark(state.compare);
   const comparisons = compare(input.areaM2, { keep: drawn?.id });
-  const landmark = drawn && { id: drawn.id, name: landmarkName(drawn.id), shape: landmarkShape(drawn) };
+  const place = state.comparePlace?.id === drawn?.id ? state.comparePlace : null;
+  const landmark = drawn && { id: drawn.id, name: landmarkName(drawn.id), shape: landmarkShape(drawn), place };
+  const second = secondArea(state.second, areaLabelOf => areaText(areaLabelOf, naturalAreaUnit(areaLabelOf, input.system)));
   const scene = buildScene({
-    areaM2: input.areaM2, dims: input.dims, height: input.height, layout: getView(state.view).layout, landmark, objects: state.objects,
+    areaM2: input.areaM2, dims: input.dims, height: input.height, layout: getView(state.view).layout, landmark, objects: state.objects, second,
   });
 
   renderResults(results, state, input);
   compareCard.update({ state, references: scene.references, comparisons, drawn, system: input.system, both });
+  answer.update({ areaLabel, comparisons, drawn });
+  picture.update({
+    title: [areaLabel, volumeLabel].filter(Boolean).join(' · '),
+    detail: comparisons.slice(0, 2).map(describe).join(' · '),
+    name: areaLabel,
+  });
   writeUrl(state);
   savePrefs(state);
   document.title = `${areaText(input.areaM2, input.areaUnit)} · AreaVisualizer`;
@@ -110,7 +135,8 @@ async function render(state) {
     // Re-frame the camera only when what's drawn changed — not for a setting or theme switch.
     const key = sceneKey(scene);
     const settings = { grid: state.grid, labels: state.labels, measures: state.measures, shadows: state.shadows, glow: state.glow };
-    active.view.update(scene, { system: input.system, both, areaLabel, volumeLabel, night, settings, reframe: key !== lastSceneKey });
+    arrange.update({ scene, state, system: input.system, both });
+    active.view.update(scene, { system: input.system, both, areaLabel, volumeLabel, night, settings, reframe: key !== lastSceneKey && !arrange.takeKeepCamera() });
     lastSceneKey = key;
   }
 }
@@ -128,11 +154,15 @@ function applyLanguage(state) {
 setLanguage(store.get().lang);
 store.subscribe(applyLanguage);
 
-initControls(document.getElementById('controls'), store);
-const compareCard = initCompare(document.getElementById('compare'), store);
+const arrange = initArrange(document.getElementById('arrange-panel'), store, () => active?.view);
+initControls(document.getElementById('controls'), store, arrange);
+initHistory(store, document.getElementById('undo-button'), document.getElementById('redo-button'));
+const compareCard = initCompare(document.getElementById('compare'), store, { select: arrange.select });
+const answer = initAnswer(document.getElementById('answer'), store);
 initStageChrome(stage, store);
 initUnitsToggle(document.getElementById('units-toggle'), store);
 initShare(document.getElementById('share'));
+const picture = initPicture(document.getElementById('picture-button'), document.getElementById('picture-dialog'), () => active?.view);
 initLanguagePicker(document.querySelector('.lang-menu'), store);
 initFolds();
 applyLanguage(store.get());

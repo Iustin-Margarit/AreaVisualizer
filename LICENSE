@@ -1,0 +1,10 @@
+Copyright (c) 2026 Iustin-Margarit. All rights reserved.
+
+The source code and content of AreaVisualizer are public so they can be read, but no permission
+is granted to copy, modify, distribute or host them without the copyright holder's written consent.
+
+Third-party parts keep their own licences:
+- three.js (vendor/three): MIT, see the licence file in that folder
+- Geist font (assets/fonts): SIL Open Font Licence, see assets/fonts/Geist-LICENSE.txt
+- 3D models (assets/models) and the moon photo (assets/moon.webp): see the credits in the site's footer
+- Map outlines (js/data/outlines.js): public-domain and open data, see README.md

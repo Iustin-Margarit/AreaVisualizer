@@ -5,7 +5,7 @@ import { writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const [out, url, w = '411', h = '800', wait = '12000', scrollTo] = process.argv.slice(2);
+const [out, url, w = '330', h = '661', wait = '12000', scrollTo] = process.argv.slice(2); // the owner's phone
 const PORT = 9333;
 const brave = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe', [
   '--headless=new', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--hide-scrollbars',

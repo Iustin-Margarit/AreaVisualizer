@@ -1,6 +1,7 @@
 import { LANDMARKS } from '../data/landmarks.js';
+import { VOLUMES } from '../data/volumes.js';
 import { formatNumber } from './format.js';
-import { t, landmarkText, plural } from '../i18n/index.js';
+import { t, landmarkText, volumeText, plural } from '../i18n/index.js';
 
 const closeness = c => Math.abs(Math.log(c.ratio));
 
@@ -19,14 +20,27 @@ export function compare(areaM2, { min = 0.05, max = 500, limit = 3, keep = null 
   }
   picked.sort((a, b) => closeness(a) - closeness(b));
   const kept = LANDMARKS.find(l => l.id === keep);
-  if (kept && !picked.some(c => c.id === keep)) picked.push({ ...kept, ratio: areaM2 / kept.area });
+  if (kept && !picked.some(c => c.id === keep)) picked.push({ ...kept, ratio: areaM2 / kept.area, extra: true });
   return picked;
 }
 
+// The volumes closest to this one: the nearest smaller and the nearest bigger, the closest first.
+export function compareVolume(m3, { min = 0.0005, max = 2000 } = {}) {
+  const ranked = VOLUMES
+    .map(v => ({ ...v, ratio: m3 / v.m3 }))
+    .filter(c => c.ratio >= min && c.ratio <= max)
+    .sort((a, b) => closeness(a) - closeness(b));
+  const other = ranked.find(c => (c.ratio >= 1) !== (ranked[0].ratio >= 1));
+  return [ranked[0], other].filter(Boolean);
+}
+
+export const describeVolume = comparison => phrase(comparison, volumeText(comparison.id));
+
 // "≈ 16 A4 sheets", "≈ 55% of a single bed", "≈ 2× Vatican City", in the visitor's language: the
 // phrases and their grammar (cases, number forms) come from the language file.
-export function describe({ id, ratio, proper }) {
-  const text = landmarkText(id);
+export const describe = comparison => phrase(comparison, landmarkText(comparison.id));
+
+function phrase({ ratio, proper }, text) {
   const name = text.name ?? text.one;
   if (ratio >= 0.95 && ratio < 1.05) return proper ? t('cmp.same', { of: text.of, like: text.like ?? name }) : t('cmp.one', { one: text.one });
   if (ratio < 1) return t('cmp.pct', { pct: formatNumber(ratio * 100, 2), of: text.of });

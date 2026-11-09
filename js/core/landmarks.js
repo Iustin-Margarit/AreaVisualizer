@@ -68,19 +68,32 @@ const MARKS = {
 
 const cache = new Map();
 
-// Drawable shape for a landmark, or null (e.g. Earth's land area).
+// More countries live in their own file, downloaded the first time one is picked.
+let world = null;
+export const needsWorld = landmark => Boolean(landmark?.world) && !world;
+export async function loadWorld() {
+  ({ OUTLINES: world } = await import('../data/outlines-world.js'));
+}
+
+// Whether a landmark can be drawn at all (Earth's land area can't).
+export const canDraw = ({ id, size, world: far }) => Boolean(size || far || OUTLINES[id]);
+
+// Drawable shape for a landmark, or null (Earth's land area, or a country not downloaded yet).
 export function landmarkShape(landmark) {
-  if (!cache.has(landmark.id)) cache.set(landmark.id, buildShape(landmark));
-  return cache.get(landmark.id);
+  if (cache.has(landmark.id)) return cache.get(landmark.id);
+  const shape = buildShape(landmark);
+  if (shape) cache.set(landmark.id, shape);
+  return shape;
 }
 
 function buildShape({ id, size }) {
   let rings;
+  const outline = OUTLINES[id] ?? world?.[id];
   if (size) {
     const [l, d] = size;
     rings = [rect(-l / 2, -d / 2, l / 2, d / 2).slice(0, -1)];
-  } else if (OUTLINES[id]) {
-    rings = OUTLINES[id].map(flat => Array.from({ length: flat.length / 2 }, (_, i) => [flat[2 * i], flat[2 * i + 1]]));
+  } else if (outline) {
+    rings = outline.map(flat => Array.from({ length: flat.length / 2 }, (_, i) => [flat[2 * i], flat[2 * i + 1]]));
   } else {
     return null;
   }

@@ -19,6 +19,15 @@ export const KIND_COLORS = {
   bridge: '#c0362c',
   mountain: '#6b7f99',
   moon: '#a9a9a3',
+  bed: '#7b8fb2',
+  sofa: '#6f8f7f',
+  table: '#a9794a',
+  desk: '#8d6b4a',
+  wardrobe: '#b08a5e',
+  fridge: '#cdd3da',
+  bathtub: '#dfe5ec',
+  washer: '#c4cbd3',
+  parking: '#7d8796',
 };
 
 export const kindColor = kind => KIND_COLORS[kind] ?? KIND_COLORS.box;

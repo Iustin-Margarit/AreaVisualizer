@@ -32,6 +32,32 @@ export function fitDistance(points, { forward, right, up }, tanX, tanY) {
   return d;
 }
 
+// fitDistance, but also slides the look-at point (by `shift`) so the points sit centred on screen:
+// around their middle in space, a tall object on one side leaves the other half of the view empty.
+export function fitCentered(points, basis, tanX, tanY) {
+  const { forward, right, up } = basis;
+  let shift = [0, 0, 0];
+  let distance = 0;
+  for (let i = 0; i < 12; i++) {
+    const moved = points.map(p => p.map((v, k) => v - shift[k]));
+    distance = fitDistance(moved, basis, tanX, tanY);
+    const extent = { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity };
+    for (const p of moved) {
+      const w = distance + dot(p, forward);
+      const x = w > 0 ? dot(p, right) / w : 0;
+      const y = w > 0 ? dot(p, up) / w : 0;
+      extent.minX = Math.min(extent.minX, x);
+      extent.maxX = Math.max(extent.maxX, x);
+      extent.minY = Math.min(extent.minY, y);
+      extent.maxY = Math.max(extent.maxY, y);
+    }
+    const dx = (extent.minX + extent.maxX) / 2 * distance;
+    const dy = (extent.minY + extent.maxY) / 2 * distance;
+    shift = shift.map((v, k) => v + right[k] * dx + up[k] * dy);
+  }
+  return { distance, shift };
+}
+
 export const MIN_CELL_PX = 12;
 
 // Mirrors the ground shader: where the ground shows `unitsPerPx` grid units per pixel, the grid

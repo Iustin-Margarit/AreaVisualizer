@@ -33,13 +33,14 @@ test('initial state: 3D, 10 m × 10 m (30 ft × 30 ft; a 4 × 5 m room on phones
 });
 
 test('switching measuring systems keeps the physical size', () => {
-  // A link made in feet opens in meters for a metric visitor...
+  // A link made in feet keeps its numbers: a metric visitor sees both systems...
   const fromFeet = initialState({ url: readUrl('?m=dims&w=10&l=20&s=rectangle&u=ft2&lu=ft') });
-  assert.deepEqual([fromFeet.lengthUnit, fromFeet.unit], ['m', 'm2']);
-  assert.deepEqual([fromFeet.width, fromFeet.length], [3.048, 6.096]);
-  // ...unless they compare both systems, then it stays as it was made.
+  assert.deepEqual([fromFeet.lengthUnit, fromFeet.unit, fromFeet.units], ['ft', 'ft2', 'both']);
+  assert.deepEqual([fromFeet.width, fromFeet.length], [10, 20]);
+  // ...and goes on remembering the units they normally use.
+  assert.deepEqual(fromFeet.ownUnits, { units: 'metric', unit: 'm2', lengthUnit: 'm' });
   const both = initialState({ prefs: { units: 'both' }, url: readUrl('?m=dims&w=10&l=20&s=rectangle&u=ft2&lu=ft') });
-  assert.deepEqual([both.lengthUnit, both.width], ['ft', 10]);
+  assert.deepEqual([both.lengthUnit, both.width, both.ownUnits], ['ft', 10, undefined]);
 
   for (const state of [
     { ...DEFAULTS, mode: 'area', value: 50, unit: 'm2' },
@@ -68,7 +69,7 @@ test('sanitize drops unknown fields and bad values', () => {
   assert.deepEqual(sanitize({ objects: ['person', 'unicorn'] }), {}, 'unknown catalog object');
   assert.deepEqual(sanitize({ objects: [{ name: ' ', w: 1, d: 1, h: 1 }] }), {}, 'blank custom name');
   assert.deepEqual(sanitize({ objects: [{ name: 'Sofa', w: 2, d: -1, h: 1 }] }), {}, 'bad custom size');
-  assert.deepEqual(sanitize({ objects: Array(13).fill('person') }), {}, 'too many');
+  assert.deepEqual(sanitize({ objects: Array(41).fill('person') }), {}, 'too many');
   assert.deepEqual(sanitize({ objects: null }), { objects: null });
   assert.deepEqual(sanitize({ height: 0, heightUnit: 'cubits' }), {});
   assert.deepEqual(sanitize({ height: -2.5 }), {});
@@ -89,9 +90,11 @@ test('an optional height: in links, converted with the system, and turned into a
   assert.deepEqual([flat.height, flat.volumeM3], [0, 0]);
   close(resolveInput({ ...room, height: 250, heightUnit: 'cm' }).volumeM3, 50); // the height has its own unit
 
-  // A link with the height in feet opens in meters for a metric visitor, and back again.
+  // A link with the height in feet keeps it; switching to metric converts it, and back again.
   const fromFeet = initialState({ url: readUrl('?m=dims&w=10&l=10&s=rectangle&u=ft2&lu=ft&h=8&hu=ft') });
-  assert.deepEqual([fromFeet.height, fromFeet.heightUnit], [2.438, 'm']);
+  assert.deepEqual([fromFeet.height, fromFeet.heightUnit], [8, 'ft']);
+  const toMetric = inSystem(fromFeet, 'metric');
+  assert.deepEqual([toMetric.height, toMetric.heightUnit], [2.438, 'm']);
   const imperial = { ...room, ...inSystem(room, 'imperial') };
   assert.deepEqual([imperial.height, imperial.heightUnit], [8.202, 'ft']);
   close(resolveInput(imperial).volumeM3, 50, 1e-3);

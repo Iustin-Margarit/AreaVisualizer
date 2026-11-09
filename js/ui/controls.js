@@ -1,6 +1,9 @@
-import { UNITS, LENGTH_UNITS, SYSTEM_UNITS, VOLUME_UNITS, FLUID_UNIT, fromM2, fromM3, naturalAreaUnit } from '../core/units.js';
-import { parseNumber, editableNumber, withUnit, formatLength, formatVolumes, OTHER_SYSTEM } from '../core/format.js';
-import { systemOf, resolveInput, sidesOf, startHeight } from '../core/input.js';
+import { UNITS, LENGTH_UNITS, SYSTEM_UNITS, VOLUME_UNITS, FLUID_UNIT, fromM2, toM2, fromM3, naturalAreaUnit } from '../core/units.js';
+import { parseNumber, editableNumber, formatNumber, withUnit, formatLength, formatVolumes, OTHER_SYSTEM } from '../core/format.js';
+import { systemOf, resolveInput, sidesOf, startHeight, secondSize } from '../core/input.js';
+import { compareVolume, describeVolume } from '../core/comparisons.js';
+import { shapeTemplate } from '../core/shapes.js';
+import { tidy } from '../core/arrange.js';
 import { VALIDATORS } from '../state.js';
 import { PRESETS } from '../data/presets.js';
 import { t, unitName, unitSymbol } from '../i18n/index.js';
@@ -26,7 +29,7 @@ const fluid = (m3, system) => withUnit(fromM3(m3, FLUID_UNIT[system]), FLUID_UNI
 // The size card. Sides and area are linked: whichever the visitor typed last holds their number
 // (state.mode), the other shows the result. Changing the shape keeps the area. A height is
 // optional and makes the area a box, with its volume worked out underneath.
-export function initControls(form, store) {
+export function initControls(form, store, arrange) {
   const $ = id => form.querySelector(`#${id}`);
   const value = $('area-value');
   const unit = $('area-unit');
@@ -74,10 +77,19 @@ export function initControls(form, store) {
     return ok ? n : null;
   };
 
+  // A custom shape is stretched to the sides typed, or scaled to the area typed.
+  const stretched = (s, sx, sz) => store.set({ points: resolveInput(s).dims.points.map(([x, z]) => [tidy(x * sx), tidy(z * sz)]) });
+
   // Typing one side keeps the other side as currently shown.
   const sideInput = (input, field, other, otherField) => input.addEventListener('input', () => {
     const n = read(input, field);
     if (n === null) return;
+    const now = store.get();
+    if (now.shape === 'custom') {
+      const { dims } = resolveInput(now);
+      const toM = LENGTH_UNITS[now.lengthUnit].toM;
+      return field === 'width' ? stretched(now, (n * toM) / dims.width, 1) : stretched(now, 1, (n * toM) / dims.depth);
+    }
     const patch = { mode: 'dims', [field]: n };
     if (store.get().mode === 'area') {
       const shown = parseNumber(other.value);
@@ -92,6 +104,10 @@ export function initControls(form, store) {
     const n = read(value, 'value');
     if (n === null) return;
     const s = store.get();
+    if (s.shape === 'custom') {
+      const scale = Math.sqrt(toM2(n, s.unit) / resolveInput(s).areaM2);
+      return stretched(s, scale, scale);
+    }
     const patch = { mode: 'area', value: n };
     // Keep a typed rectangle's proportions when its area is retyped.
     if (s.mode === 'dims' && s.shape === 'rectangle') patch.ratio = clampRatio(s.length / s.width);
@@ -134,12 +150,90 @@ export function initControls(form, store) {
     const shape = e.target.closest('[data-shape]')?.dataset.shape;
     const s = store.get();
     if (!shape || shape === s.shape) return;
+    const { areaM2, dims } = resolveInput(s);
+    if (shape === 'custom') return startFrom('l');
+    if (s.shape === 'custom') return store.set({ shape, mode: 'area', value: round(fromM2(areaM2, s.unit), 6), ratio: clampRatio(dims.depth / dims.width) });
     if (s.mode === 'area') return store.set({ shape });
     // Typed sides: switch to the area they make, so the new shape has the same area.
-    const { areaM2 } = resolveInput(s);
     const ratio = s.shape === 'rectangle' ? clampRatio(s.length / s.width) : s.ratio;
     store.set({ shape, mode: 'area', value: round(fromM2(areaM2, s.unit), 6), ratio });
   });
+
+  // Custom shapes: a ready-made one of the same area, edited in 2D, or one drawn by hand there.
+  const customTools = $('custom-tools');
+  const sizeHint = $('size-hint');
+  const startFrom = template => {
+    const s = store.get();
+    const { areaM2, dims } = resolveInput(s);
+    arrange.cancelDrawing();
+    store.set({ shape: 'custom', mode: 'dims', points: shapeTemplate(template, dims.width, dims.depth, areaM2), view: '2d' });
+  };
+  customTools.addEventListener('click', e => {
+    const template = e.target.closest('[data-template]')?.dataset.template;
+    if (template) startFrom(template);
+  });
+  $('custom-draw').addEventListener('click', () => arrange.startDrawing());
+
+  // The second area: its own sides or diameter, or an area, which makes it a square or a circle.
+  const second = {
+    add: $('add-second'), head: $('second-head'), group: $('second-group'), areaGroup: $('second-area-group'), width: $('second-width'), length: $('second-length'),
+    times: $('second-times'), unit: $('second-unit'), area: $('second-area'), result: $('second-result'), shape: $('second-shape'), remove: $('remove-second'),
+    areaUnit: form.querySelector('.second-area-unit'),
+  };
+  const updateSecond = change => store.set({ second: { ...store.get().second, ...change } });
+  second.add.addEventListener('click', () => {
+    const s = store.get();
+    const { dims } = resolveInput(s);
+    const toM = LENGTH_UNITS[s.lengthUnit].toM;
+    const side = v => Number(((v / toM) * 0.7).toPrecision(2));
+    store.set({ second: { shape: 'rectangle', width: side(dims.width), length: side(dims.depth), unit: s.lengthUnit } });
+    second.width.focus();
+    second.width.select();
+  });
+  second.remove.addEventListener('click', () => store.set({ second: null }));
+  second.shape.addEventListener('click', e => {
+    const shape = e.target.closest('[data-second-shape]')?.dataset.secondShape;
+    if (shape) updateSecond({ shape });
+  });
+  second.unit.addEventListener('change', () => updateSecond({ unit: second.unit.value }));
+  for (const [input, field] of [[second.width, 'width'], [second.length, 'length']]) {
+    input.addEventListener('input', () => {
+      const n = read(input, field);
+      if (n !== null) updateSecond({ [field]: n });
+    });
+  }
+  second.area.addEventListener('input', () => {
+    const n = read(second.area, 'value');
+    if (n === null) return;
+    const s = store.get();
+    const m2 = toM2(n, s.unit);
+    const side = (s.second.shape === 'circle' ? 2 * Math.sqrt(m2 / Math.PI) : Math.sqrt(m2)) / LENGTH_UNITS[s.second.unit].toM;
+    updateSecond({ width: Number(side.toPrecision(6)), length: Number(side.toPrecision(6)) });
+  });
+
+  function syncSecond(s, areaM2, relabel) {
+    const b = s.second;
+    second.add.hidden = !!b;
+    for (const part of [second.head, second.group, second.areaGroup, second.result]) part.hidden = !b;
+    if (!b) return;
+    const { areaM2: otherM2 } = secondSize(b);
+    const circle = b.shape === 'circle';
+    second.length.hidden = second.times.hidden = circle;
+    second.width.setAttribute('aria-label', t(circle ? 'sides.diameter' : 'sides.width'));
+    second.shape.querySelectorAll('[data-second-shape]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.secondShape === b.shape)));
+    const show = (input, n) => {
+      if (relabel || document.activeElement !== input) input.value = editableNumber(n, 5);
+    };
+    show(second.width, b.width);
+    show(second.length, b.length);
+    show(second.area, fromM2(otherM2, s.unit));
+    second.unit.value = b.unit;
+    second.unit.nextElementSibling.textContent = unitSymbol(b.unit);
+    second.areaUnit.textContent = unitSymbol(s.unit);
+    const percent = Math.abs(otherM2 / areaM2 - 1) * 100;
+    const difference = withUnit(fromM2(Math.abs(otherM2 - areaM2), s.unit), s.unit);
+    second.result.textContent = percent < 0.5 ? t('second.same') : t(otherM2 > areaM2 ? 'second.bigger' : 'second.smaller', { pct: formatNumber(percent, 3), d: difference });
+  }
 
   presets.addEventListener('click', e => {
     const preset = PRESETS[systemOf(store.get())][e.target.closest('[data-preset]')?.dataset.preset];
@@ -172,7 +266,7 @@ export function initControls(form, store) {
     }
     if (relabel || rendered.units !== s.units) {
       unit.innerHTML = unitOptions(UNITS, s.units);
-      lengthUnit.innerHTML = heightUnit.innerHTML = unitOptions(LENGTH_UNITS, s.units);
+      lengthUnit.innerHTML = heightUnit.innerHTML = second.unit.innerHTML = unitOptions(LENGTH_UNITS, s.units);
     }
     if (relabel || rendered.system !== system) {
       presets.innerHTML = PRESETS[system].map((p, i) => `<button type="button" data-preset="${i}">${presetLabel(p)}</button>`).join('');
@@ -181,8 +275,15 @@ export function initControls(form, store) {
 
     const { areaM2, dims, height: heightM, volumeM3 } = resolveInput(s);
     const circle = s.shape === 'circle';
+    const custom = s.shape === 'custom';
     let sidesM; // the two sides as shown, in meters
-    if (s.mode === 'area') {
+    if (custom) {
+      const toM = LENGTH_UNITS[s.lengthUnit].toM;
+      showDerived(value, fromM2(areaM2, s.unit));
+      showDerived(width, dims.width / toM);
+      showDerived(length, dims.depth / toM);
+      sidesM = [dims.width, dims.depth];
+    } else if (s.mode === 'area') {
       showTyped(value, s.value);
       const [a, b] = sidesOf(dims, s.lengthUnit, circle ? 1 : s.ratio);
       showDerived(width, a);
@@ -199,6 +300,8 @@ export function initControls(form, store) {
     lengthUnit.value = s.lengthUnit;
 
     length.hidden = times.hidden = circle;
+    customTools.hidden = !custom;
+    sizeHint.hidden = custom;
     sidesLabel.textContent = t(circle ? 'sides.diameter' : 'sides.label');
     width.setAttribute('aria-label', t(circle ? 'sides.diameter' : 'sides.width'));
     shapePicker.querySelectorAll('[data-shape]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.shape === s.shape)));
@@ -227,8 +330,10 @@ export function initControls(form, store) {
       const water = volumeM3 >= VOLUME_UNITS.l.toM3
         ? ` <span>· ${both ? `${fluid(volumeM3, system)} · ${fluid(volumeM3, other)}` : fluid(volumeM3, system)}</span>`
         : '';
-      volume.innerHTML = `${t('volume')} <strong>${formatVolumes(volumeM3, system, both)}</strong>${water}`;
+      const about = compareVolume(volumeM3).map(describeVolume).join(' · ');
+      volume.innerHTML = `${t('volume')} <strong>${formatVolumes(volumeM3, system, both)}</strong>${water}${about ? `<br><span class="volume-about">${about}</span>` : ''}`;
     }
+    syncSecond(s, areaM2, relabel);
     // Phones show just the unit's symbol on each menu (styles.css, .unit-box); the list keeps names.
     for (const select of [unit, lengthUnit, heightUnit]) select.nextElementSibling.textContent = unitSymbol(select.value);
     numbers.forEach(fit); // last, once hidden fields have been shown

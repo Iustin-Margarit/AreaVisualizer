@@ -1,5 +1,5 @@
 import { UNITS, LENGTH_UNITS, COUNTERPART, toM2, fromM2 } from './units.js';
-import { shapeDimensions } from './shapes.js';
+import { shapeDimensions, polygonDimensions, polygonArea } from './shapes.js';
 
 // The size is entered either as sides (mode 'dims') or as an area (mode 'area'); whichever was
 // typed last is the truth and the other is derived. With sides, a rectangle is `width` × `length`
@@ -19,7 +19,18 @@ export function resolveInput(state) {
   return { ...flat, height, volumeM3: flat.areaM2 * height };
 }
 
+// Corners are stored rounded, so an outline made for 100 m² measures 99.9992: close enough to say 100.
+export function neatArea(m2, unit) {
+  const value = fromM2(m2, unit);
+  const neat = [3, 4, 5].map(digits => Number(value.toPrecision(digits))).find(n => Math.abs(n - value) <= value * 1e-4);
+  return neat === undefined ? m2 : toM2(neat, unit);
+}
+
 function resolveArea(state) {
+  if (state.shape === 'custom' && state.points) {
+    const dims = polygonDimensions(state.points);
+    return { areaM2: neatArea(polygonArea(dims.points), state.unit), dims, areaUnit: state.unit, system: LENGTH_UNITS[state.lengthUnit].system };
+  }
   if (state.mode === 'dims') {
     const unit = LENGTH_UNITS[state.lengthUnit];
     const a = state.width * unit.toM;
@@ -38,6 +49,13 @@ function resolveArea(state) {
     areaUnit: state.unit,
     system: UNITS[state.unit].system,
   };
+}
+
+// The second area to compare with, in meters: { width, depth, radius? (a circle), areaM2 }.
+export function secondSize({ shape, width, length, unit }) {
+  const toM = LENGTH_UNITS[unit].toM;
+  if (shape === 'circle') return { width: width * toM, depth: width * toM, radius: (width * toM) / 2, areaM2: Math.PI * ((width * toM) / 2) ** 2 };
+  return { width: width * toM, depth: length * toM, areaM2: width * toM * length * toM };
 }
 
 // The two side fields for derived dims, in a length unit, in the order the visitor's proportions
@@ -69,6 +87,11 @@ export function inSystem(state, system) {
   if (LENGTH_UNITS[state.heightUnit].system !== system) {
     patch.heightUnit = COUNTERPART[state.heightUnit];
     if (state.height) patch.height = tidy(state.height * LENGTH_UNITS[state.heightUnit].toM / LENGTH_UNITS[patch.heightUnit].toM);
+  }
+  if (state.second && LENGTH_UNITS[state.second.unit].system !== system) {
+    const unit = COUNTERPART[state.second.unit];
+    const k = LENGTH_UNITS[state.second.unit].toM / LENGTH_UNITS[unit].toM;
+    patch.second = { ...state.second, unit, width: tidy(state.second.width * k), length: tidy(state.second.length * k) };
   }
   return patch;
 }

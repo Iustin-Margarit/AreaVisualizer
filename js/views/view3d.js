@@ -2,15 +2,19 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { formatLength, formatLengths, escapeHTML } from '../core/format.js';
 import { keyDimension } from '../core/references.js';
+import { footprint } from '../core/arrange.js';
+import { offsetPolygon, innerPoint } from '../core/shapes.js';
+import { contentKey } from '../core/scene.js';
 import { layoutLabels, labelRank } from './labels.js';
 import { toolsHTML, legendHTML, cameraDockHTML, coarsePointer } from './stage-ui.js';
+import { newCanvas, paintLabels, pictureScale } from './picture.js';
 import { t } from '../i18n/index.js';
 import { translatePage } from '../i18n/dom.js';
 import { buildModel, createKit } from './3d/models.js';
 import { loadModel, placeModel } from './3d/gltf.js';
 import { MODELS } from '../data/models.js';
 import { createGround } from './3d/ground.js';
-import { orbitBasis, fitDistance, gridLevels } from './3d/math.js';
+import { orbitBasis, fitCentered, gridLevels } from './3d/math.js';
 import { touchGestures } from './3d/gestures.js';
 import { areaGlowMaterial, areaGlow, easeOutBack, easeOutCubic } from './3d/effects.js';
 import { createSky, nightSky } from './3d/sky.js';
@@ -28,6 +32,11 @@ const X_AXIS = new THREE.Vector3(1, 0, 0);
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const Z_AXIS = new THREE.Vector3(0, 0, 1);
 const TINY_PX = 10;                               // smaller on screen than this → locator ring
+const TAP_WAIT_MS = 320;                         // a tap selects after this, if no second tap came
+const GRAB_PX = 14;                               // small objects can be grabbed from this close
+const DRAG_PX = 5;                                // a press that moves less than this is a tap
+const SNAP_PX = 8;                                // this close to the area's edge, objects stand flush
+const BIG_SHARE = 0.7;                            // this big on screen: dragging turns the view until it's selected
 const FT = 0.3048;
 
 // Day and night lighting (night follows the dark theme). Most of the soft light comes from the sky
@@ -38,11 +47,11 @@ const FT = 0.3048;
 const LIGHTS = {
   day: {
     sky: '#f1f3f7', ground: '#b9bfae', hemi: 0.6, sun: '#fff2e0', sunIntensity: 2.5, back: '#ffffff', backIntensity: 0.9,
-    fillGlow: 0, rimGlow: 0.15, glow: [0.3, 0.22], additive: false, shade: 0.92, neon: 0,
+    fillGlow: 0, rimGlow: 0.15, glow: [0.24, 0.17], additive: false, shade: 0.92, neon: 0,
   },
   night: {
     sky: '#9fb3ff', ground: '#1c2230', hemi: 0.95, sun: '#cdd9ff', sunIntensity: 1.4, back: '#8fa8ff', backIntensity: 1.1,
-    fillGlow: 0.3, rimGlow: 0.9, glow: [0.35, 0.5], additive: true, shade: 0.75, neon: 1.6,
+    fillGlow: 0.22, rimGlow: 0.65, glow: [0.24, 0.32], additive: true, shade: 0.75, neon: 1.15,
   },
 };
 // With the glow setting off: a plain area and rim, nothing lit around them.
@@ -59,6 +68,7 @@ function outline(shape, band = 0) {
   const path = grow => {
     const s = new THREE.Shape();
     if (shape.type === 'circle') return s.absarc(0, 0, shape.radius + grow, 0, Math.PI * 2, false);
+    if (shape.type === 'polygon') return s.setFromPoints(offsetPolygon(shape.points, grow).map(([x, z]) => new THREE.Vector2(x, -z)));
     const hw = shape.width / 2 + grow, hd = shape.depth / 2 + grow;
     return s.moveTo(-hw, -hd).lineTo(hw, -hd).lineTo(hw, hd).lineTo(-hw, hd).closePath();
   };
@@ -94,7 +104,8 @@ const extrudeUp = (shape2d, height) =>
 // Perspective view with orbit controls. Renders only when something changes (camera moves,
 // new area, theme switch) or while spinning, to save battery. Labels are HTML on top of the
 // canvas, so they stay crisp and use the page's fonts and colours.
-export function createView() {
+// `host` (ui/arrange.js) knows what's selected; objects are grabbed and dragged here.
+export function createView(host) {
   let root, labelsEl, legendScale, hint, dock;
   let renderer, scene, camera, controls, ground, kit, sun, hemi, sky, stars, backLight, neon;
   let areaGroup = null;
@@ -111,6 +122,17 @@ export function createView() {
   let resizeObserver = null;
   let removeGestures = null;
   let touchGlideAt = -1e9;  // when a double tap last glided in
+  let toolsBox = { left: Infinity, bottom: 0 }; // where the zoom buttons are on the stage
+  const fingers = new Map(); // touches on the view: pointer id → { x, y }
+  let lastDistance = 1;      // from the camera to the point it turns around, last frame
+  let builtFrom = '';        // contentKey of what's currently built
+  let tapTimer = 0;
+  let landmarkObject = null, secondObject = null;
+  let selectionMark = null; // the frame on the ground round the selected object
+  let drag = null;          // { target, dx, dz, from, start, moved } while an object is being moved
+  let press = null;         // { x, y, target } until the pointer lifts or moves: a tap selects
+  const pointerRay = new THREE.Raycaster();
+  const hitBox = new THREE.Box3();
   const materials = {};
   const skyLight = {};      // the light each sky casts on the models, worked out once per sky
   let pmrem = null;
@@ -122,15 +144,23 @@ export function createView() {
 
   // --- camera ----------------------------------------------------------------
 
-  // Distance at which the whole scene fits when seen from this angle.
-  const distanceFor = (elevation, azimuth) => {
+  // Distance and look-at point at which the whole scene fits, centred, when seen from this angle.
+  const framing = (elevation, azimuth) => {
     const tanY = TAN_HALF_FOV * MARGIN;
-    return Math.max(fitDistance(fitted.points, orbitBasis(elevation, azimuth), tanY * camera.aspect, tanY), fitted.radius * 0.5);
+    const basis = orbitBasis(elevation, azimuth);
+    const { distance, shift } = fitCentered(fitted.points, basis, tanY * camera.aspect, tanY);
+    const target = fitted.center.clone().add(new THREE.Vector3(...shift));
+    // Never aim below the ground: back along the line of sight, so the picture stays the same.
+    const slide = Math.max(0, -target.y / basis.toCamera[1]);
+    target.addScaledVector(new THREE.Vector3(...basis.toCamera), slide);
+    return { distance: Math.max(distance - slide, fitted.radius * 0.5), target };
   };
+  const distanceFor = (elevation, azimuth) => framing(elevation, azimuth).distance;
 
   function viewAt(distance, elevation = elevationFor(camera.aspect), azimuth = AZIMUTH) {
     const [x, y, z] = orbitBasis(elevation, azimuth).toCamera;
-    return { target: fitted.center.clone(), position: fitted.center.clone().add(new THREE.Vector3(x, y, z).multiplyScalar(distance)) };
+    const { target } = framing(elevation, azimuth);
+    return { target, position: target.clone().add(new THREE.Vector3(x, y, z).multiplyScalar(distance)) };
   }
 
   const framedFrom = (elevation, azimuth) => viewAt(distanceFor(elevation, azimuth), elevation, azimuth);
@@ -231,15 +261,15 @@ export function createView() {
       points.push(new THREE.Vector3(x, 0, z), new THREE.Vector3(x, height, z));
     }
     for (const r of references) {
-      for (const x of [r.x - r.w / 2, r.x + r.w / 2]) for (const y of [0, r.h]) for (const z of [r.z - r.d / 2, r.z + r.d / 2]) {
+      const { hx, hz } = footprint(r);
+      for (const x of [r.x - hx, r.x + hx]) for (const y of [0, r.h]) for (const z of [r.z - hz, r.z + hz]) {
         points.push(new THREE.Vector3(x, y, z));
       }
     }
-    const lm = model.landmark;
-    if (lm) {
-      for (const x of [lm.x - lm.shape.width / 2, lm.x + lm.shape.width / 2]) {
-        for (const z of [lm.z - lm.shape.depth / 2, lm.z + lm.shape.depth / 2]) points.push(new THREE.Vector3(x, 0, z));
-      }
+    for (const lm of [model.landmark, model.second]) {
+      if (!lm) continue;
+      const { hx, hz } = footprint({ w: lm.shape.width, d: lm.shape.depth, r: lm.r });
+      for (const x of [lm.x - hx, lm.x + hx]) for (const z of [lm.z - hz, lm.z + hz]) points.push(new THREE.Vector3(x, 0, z));
     }
     return points;
   }
@@ -251,8 +281,12 @@ export function createView() {
     const center = box.getCenter(new THREE.Vector3());
     const radius = Math.max(...points.map(p => p.distanceTo(center)));
     fitted = { center, radius, points: points.map(p => [p.x - center.x, p.y - center.y, p.z - center.z]), limits: box.clone().expandByScalar(radius * 0.5) };
+    fitted.limits.min.y = 0; // the point the camera turns around stays above the ground
     fitted.distance = distanceFor(elevationFor(camera.aspect), AZIMUTH);
-    controls.minDistance = fitted.distance * MIN_DISTANCE;
+    // Zooming in stops about where the smallest thing on show fills the view, not in the ground.
+    const lm = model.landmark;
+    const smallest = Math.min(model.span, ...model.references.map(r => Math.max(r.w, r.d, r.h)), ...(lm ? [Math.max(lm.shape.width, lm.shape.depth)] : []));
+    controls.minDistance = Math.max(fitted.distance * MIN_DISTANCE, Math.min(smallest * 2, fitted.distance * 0.5));
     controls.maxDistance = fitted.distance * MAX_DISTANCE;
   }
 
@@ -261,7 +295,9 @@ export function createView() {
   function disposeContent() {
     popping.length = holders.length = 0;
     if (!content) return;
-    content.traverse(o => { if (!o.userData.shared) o.geometry?.dispose(); });
+    content.traverse(o => {
+      if (!o.userData.shared) o.geometry?.dispose();
+    });
     scene.remove(content);
     content = null;
   }
@@ -282,8 +318,9 @@ export function createView() {
     };
     const strip = (length, alongX, x, z) => bar(alongX ? length : lw, lift, alongX ? lw : length, x, lift / 2, z);
     const zf = shape.depth / 2 + off;
-    const marks = [strip(shape.width, true, 0, zf), strip(tick, false, -shape.width / 2, zf), strip(tick, false, shape.width / 2, zf)];
-    if (shape.type !== 'circle') {
+    // A custom shape has its side lengths written along it instead (buildLabels).
+    const marks = shape.type === 'polygon' ? [] : [strip(shape.width, true, 0, zf), strip(tick, false, -shape.width / 2, zf), strip(tick, false, shape.width / 2, zf)];
+    if (shape.type !== 'circle' && shape.type !== 'polygon') {
       const xl = -shape.width / 2 - off;
       marks.push(strip(shape.depth, false, xl, 0), strip(tick, true, xl, -shape.depth / 2), strip(tick, true, xl, shape.depth / 2));
     }
@@ -295,27 +332,28 @@ export function createView() {
       marks.push(bar(w, height, w, x, height / 2, z), bar(end, w, w, x, w / 2, z), bar(end, w, w, x, height - w / 2, z));
     }
     const group = new THREE.Group();
-    group.add(...marks);
+    if (marks.length) group.add(...marks); // a flat custom shape has none
     return group;
   }
 
   // The comparison landmark lying on the ground: translucent fill, outline, markings.
-  function landmarkGroup({ x, z, shape }, span) {
+  function landmarkGroup({ x, z, r, shape }, span, paint = { fill: materials.landmarkFill, line: materials.landmarkLine, marks: materials.landmarkMarks }) {
     const size = Math.max(span, shape.width, shape.depth);
     const lift = size * 0.0004;
     const line = Math.min(size * 0.003, Math.max(shape.width, shape.depth) * 0.03);
     const fill = new THREE.Mesh(
       new THREE.ShapeGeometry(shape.rings.map(r => new THREE.Shape(r.map(([px, pz]) => new THREE.Vector2(px, -pz))))).rotateX(-Math.PI / 2),
-      materials.landmarkFill,
+      paint.fill,
     );
     fill.position.y = lift;
     fill.receiveShadow = true;
     const group = new THREE.Group();
     group.position.set(x, 0, z);
+    group.rotation.y = -deg(r);
     group.add(
       fill,
-      new THREE.Mesh(ribbons(shape.marks, false, line * 0.6, lift * 2), materials.landmarkMarks),
-      new THREE.Mesh(ribbons(shape.rings, true, line, lift * 3), materials.landmarkLine),
+      new THREE.Mesh(ribbons(shape.marks, false, line * 0.6, lift * 2), paint.marks),
+      new THREE.Mesh(ribbons(shape.rings, true, line, lift * 3), paint.line),
     );
     return group;
   }
@@ -326,15 +364,24 @@ export function createView() {
     const edge = Math.min(Math.max(span, height) * 0.005, Math.min(span, height) * 0.05);
     const glass = materials.walls;
     const group = new THREE.Group();
-    const walls = shape.type === 'circle'
-      ? new THREE.Mesh(new THREE.CylinderGeometry(shape.radius, shape.radius, height, 72), [glass, glass, materials.hidden]) // side, top, bottom
-      : new THREE.Mesh(new THREE.BoxGeometry(shape.width, height, shape.depth), [glass, glass, glass, materials.hidden, glass, glass]); // ±x, top, bottom, ±z
-    walls.position.y = height / 2;
+    const polygon = shape.type === 'polygon';
+    const walls = polygon
+      ? new THREE.Mesh(extrudeUp(outline(shape), height), glass)
+      : shape.type === 'circle'
+        ? new THREE.Mesh(new THREE.CylinderGeometry(shape.radius, shape.radius, height, 72), [glass, glass, materials.hidden]) // side, top, bottom
+        : new THREE.Mesh(new THREE.BoxGeometry(shape.width, height, shape.depth), [glass, glass, glass, materials.hidden, glass, glass]); // ±x, top, bottom, ±z
+    walls.position.y = polygon ? 0 : height / 2;
     const lip = Math.min(edge, height * 0.02);
     const lid = new THREE.Mesh(extrudeUp(outline(shape, edge), lip), materials.rim);
     lid.position.y = height - lip;
     group.add(walls, lid);
-    if (shape.type !== 'circle') {
+    if (polygon) {
+      for (const [x, z] of shape.points) {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(edge, height, edge), materials.rim);
+        post.position.set(x, height / 2, z);
+        group.add(post);
+      }
+    } else if (shape.type !== 'circle') {
       for (const x of [-1, 1]) for (const z of [-1, 1]) {
         const post = new THREE.Mesh(new THREE.BoxGeometry(edge, height, edge), materials.rim);
         post.position.set(x * shape.width / 2, height / 2, z * shape.depth / 2);
@@ -371,7 +418,10 @@ export function createView() {
     neon.distance = span * 1.6 + height;
     content.add(areaGroup);
 
-    if (model.landmark) content.add(landmarkGroup(model.landmark, span));
+    landmarkObject = model.landmark ? landmarkGroup(model.landmark, span) : null;
+    if (landmarkObject) content.add(landmarkObject);
+    secondObject = model.second ? landmarkGroup(model.second, span, { fill: materials.secondFill, line: materials.secondLine, marks: materials.secondLine }) : null;
+    if (secondObject) content.add(secondObject);
 
     // Downloaded models arrive a moment later (once, then they're cached); the built-in model
     // stands in only if one can't be loaded. During the opening they pop up one after another.
@@ -379,6 +429,7 @@ export function createView() {
     for (const [i, ref] of references.entries()) {
       const holder = new THREE.Group();
       holder.position.set(ref.x, 0, ref.z);
+      holder.rotation.y = -deg(ref.r ?? 0);
       content.add(holder);
       holders[i] = holder;
       const show = object => {
@@ -450,6 +501,7 @@ export function createView() {
     materials.glow.color.set(areaColor);
     materials.dims.color.set(get('--muted', '#5d6470'));
     for (const m of [materials.landmarkFill, materials.landmarkLine, materials.landmarkMarks]) m.color.set(get('--landmark', '#d97706'));
+    for (const m of [materials.secondFill, materials.secondLine]) m.color.set(get('--second', '#9333ea'));
     const light = opts.settings.glow ? LIGHTS[mode] : { ...LIGHTS[mode], ...NO_GLOW };
     materials.glow.visible = opts.settings.glow;
     hemi.color.set(light.sky);
@@ -493,10 +545,21 @@ export function createView() {
       labelsEl.append(el);
       return el;
     };
-    labels = [
+    // A custom shape's sides, longest first: each is only shown if it has room (updateLabels).
+    const outside = shape.type === 'polygon' ? offsetPolygon(shape.points, off) : [];
+    labels = shape.type === 'polygon' ? shape.points.map(([ax, az], i) => {
+      const next = (i + 1) % shape.points.length;
+      const [bx, bz] = shape.points[next];
+      const length = Math.hypot(bx - ax, bz - az);
+      return {
+        type: 'dim', el: make('l3-dim', fmt(length)), length,
+        edge: [new THREE.Vector3(ax, 0, az), new THREE.Vector3(bx, 0, bz)],
+        point: new THREE.Vector3((outside[i][0] + outside[next][0]) / 2, 0, (outside[i][1] + outside[next][1]) / 2),
+      };
+    }).sort((a, b) => b.length - a.length) : [
       { type: 'dim', el: make('l3-dim', shape.type === 'circle' ? `⌀ ${fmt(shape.width)}` : fmt(shape.width)), point: new THREE.Vector3(0, 0, shape.depth / 2 + off) },
     ];
-    if (shape.type !== 'circle') {
+    if (shape.type !== 'circle' && shape.type !== 'polygon') {
       labels.push({ type: 'dim', el: make('l3-dim', fmt(shape.depth)), point: new THREE.Vector3(-shape.width / 2 - off, 0, 0) });
     }
     if (height) {
@@ -509,12 +572,13 @@ export function createView() {
     }
     if (opts.areaLabel) {
       const volume = height && opts.volumeLabel ? `<small>${opts.volumeLabel}</small>` : '';
-      labels.push({ type: 'area', el: make('l3-area', opts.areaLabel + volume), point: new THREE.Vector3(0, span * 0.006, 0) });
+      const [x, z] = shape.type === 'polygon' ? innerPoint(shape.points) : [0, 0]; // a notched shape's middle can be outside it
+      labels.push({ type: 'area', el: make('l3-area', opts.areaLabel + volume), point: new THREE.Vector3(x, span * 0.006, z) });
     }
-    const lm = model.landmark;
-    if (lm) {
+    for (const [target, lm] of [['landmark', model.landmark], ['second', model.second]]) {
+      if (!lm) continue;
       labels.push({
-        type: 'landmark', el: make('l3-landmark', capitalize(lm.name)),
+        type: 'landmark', target, el: make(`l3-landmark${target === 'second' ? ' l3-second' : ''}`, capitalize(lm.name)),
         point: new THREE.Vector3(lm.x, 0, lm.z), size: Math.max(lm.shape.width, lm.shape.depth),
       });
     }
@@ -533,6 +597,7 @@ export function createView() {
         size: Math.max(ref.w, ref.h, ref.d),
       });
     }
+    labels.sort((a, b) => (b.type === 'area') - (a.type === 'area')); // the area's own label claims its place first
     // Measure once while visible, then hide until the first frame positions them.
     for (const l of labels) {
       l.width = l.el.offsetWidth;
@@ -548,7 +613,12 @@ export function createView() {
       return { x: (tmp.x + 1) / 2 * vw, y: (1 - tmp.y) / 2 * vh, visible: tmp.z < 1 && Math.abs(tmp.x) < 1.1 && Math.abs(tmp.y) < 1.1 };
     };
     const move = (el, x, y, anchor) => { el.style.transform = `translate(${x}px, ${y}px) translate(${anchor})`; };
-    const areaVisible = model.span * pxPerMeter(fitted.center) > 70;
+    // Labels stay on the stage and out from under the buttons down its right side.
+    const clearOfTools = (x, y, half) => Math.max(half + 6, Math.min(x, (y < toolsBox.bottom ? toolsBox.left : vw) - half - 6));
+    const areaPx = model.span * pxPerMeter(fitted.center);
+    const areaVisible = areaPx > 70;
+    // An area narrower than its label has the label underneath, and no room for its side lengths.
+    const areaFits = areaPx >= (labels.find(l => l.type === 'area')?.width ?? 0) + 24;
 
     const refs = [];
     const rings = [];
@@ -560,8 +630,15 @@ export function createView() {
         const wanted = l.type === 'landmark' ? showNames : measures;
         let p = project(l.point);
         if (l.slide) p = l.slide.map(project).find(c => c.visible && free(box(l, c))) ?? p;
-        const big = l.type === 'landmark' ? l.size * pxPerMeter(l.point) > 30 : l.size ? l.size * pxPerMeter(l.point) > 40 : areaVisible;
-        l.el.hidden = !wanted || !p.visible || !big;
+        if (l.left) p.x = Math.max(p.x, l.width + 12); // never cut off by the edge of the view
+        else p.x = clearOfTools(p.x, p.y - 12, l.width / 2);
+        if (l.type === 'area' && !areaFits) p.y += 30;
+        if (l.type === 'landmark' || (l.type === 'dim' && !l.edge && !l.left)) for (let line = 0; line < 4 && !free(box(l, p)); line++) p.y += 20; // off the area's own label
+        // Beside a big place, the area's own label stays: it's the one thing to find.
+        const big = l.type === 'landmark' ? l.size * pxPerMeter(l.point) > 30 : l.size ? l.size * pxPerMeter(l.point) > 40 : l.type === 'area' ? areaVisible || model.landmark : areaVisible && areaFits;
+        const [a, b] = l.edge?.map(project) ?? [];
+        const crowded = l.edge && (Math.hypot(b.x - a.x, b.y - a.y) < l.width * 0.6 || !free(box(l, p)));
+        l.el.hidden = !wanted || !p.visible || !big || crowded;
         if (l.el.hidden) continue;
         move(l.el, p.x, p.y, l.left ? 'calc(-100% - 8px), -50%' : '-50%, -50%');
         taken.push(box(l, p));
@@ -576,7 +653,7 @@ export function createView() {
       p.visible &&= grow > 0;
       l.ring.hidden = l.el.hidden = l.leader.hidden = true;
       if (showNames && tiny && p.visible) rings.push({ l, p });
-      if (showNames && p.visible) refs.push({ l, rank: l.rank, anchorX: p.x, anchorY: tiny ? p.y - 12 : p.y, width: l.width });
+      if (showNames && p.visible) refs.push({ l, rank: l.rank, anchorX: p.x, anchorY: tiny ? p.y - 18 : p.y, width: l.width });
     }
     // Tiny objects side by side would draw a knot of rings: one ring marks the spot.
     const ringsShown = [];
@@ -591,7 +668,7 @@ export function createView() {
     for (const it of layoutLabels(refs, { direction: -1, offset: 6, lineHeight: 22, gap: 6, maxShift: 1 })) {
       if (it.hidden) continue;
       it.l.el.hidden = false;
-      move(it.l.el, it.x, it.y, '-50%, -100%');
+      move(it.l.el, clearOfTools(it.x, it.y - 26, it.width / 2), it.y, '-50%, -100%');
       if (it.shift) {
         it.l.leader.hidden = false;
         it.l.leader.style.height = `${it.anchorY - it.y}px`;
@@ -655,6 +732,8 @@ export function createView() {
     if (tween && tween.start !== Infinity) stepTween(now); // Infinity: waiting for the splash (update)
     stepIntro(now);
     controls.update(); // applies damping and spin, and asks for another frame while still moving
+    if (fingers.size === 2) holdPinchPoint();
+    lastDistance = camera.position.distanceTo(controls.target);
     if (controls.autoRotate) requestRender();
 
     // The back light stays behind whatever you look at, so every object gets a bright edge.
@@ -766,12 +845,194 @@ export function createView() {
     camera.aspect = vw / vh;
     camera.updateProjectionMatrix();
     root.classList.toggle('narrow', vw < 560);
+    const [stageBox, tools] = [root.getBoundingClientRect(), root.querySelector('.stage-tools').getBoundingClientRect()];
+    toolsBox = { left: tools.left - stageBox.left, bottom: tools.bottom - stageBox.top };
     // Keep the picked camera view framed as the stage changes size (e.g. full screen).
     if (model) {
       fitView();
-      if (preset && !tween) jump(PRESETS[preset]());
+      if (preset && !tween && !host?.typing()) jump(PRESETS[preset]()); // not for a keyboard opening
     }
     requestRender();
+  }
+
+  // --- moving objects --------------------------------------------------------
+
+  const itemOf = target => (typeof target === 'string' ? model[target] : model.references[target]);
+  const sizeOf = item => (item.shape ? [item.shape.width, item.shape.depth] : [item.w, item.d]);
+  const pxPerMeterAt = (x, y, z) => vh / (2 * TAN_HALF_FOV * Math.max(camera.position.distanceTo(tmp.set(x, y, z)), 1e-9));
+
+  function aim(e) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointerRay.setFromCamera(new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1), camera);
+  }
+
+  const groundPoint = () => pointerRay.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
+
+  // The nearest object under the pointer (a little generous for small ones), else the landmark.
+  function targetAt(e) {
+    if (!model) return null;
+    aim(e);
+    let best = null, nearest = Infinity;
+    const point = new THREE.Vector3();
+    model.references.forEach((ref, i) => {
+      const { hx, hz } = footprint(ref);
+      const grow = GRAB_PX / pxPerMeterAt(ref.x, 0, ref.z);
+      hitBox.min.set(ref.x - hx - grow, 0, ref.z - hz - grow);
+      hitBox.max.set(ref.x + hx + grow, ref.h + grow, ref.z + hz + grow);
+      if (!pointerRay.ray.intersectBox(hitBox, point)) return;
+      const distance = point.distanceTo(camera.position);
+      if (distance < nearest) [best, nearest] = [i, distance];
+    });
+    if (best !== null) return best;
+    const ground = groundPoint();
+    if (!ground) return null;
+    return ['second', 'landmark'].find(target => {
+      const lm = model[target];
+      if (!lm) return false;
+      const [c, s] = [Math.cos(deg(lm.r)), Math.sin(deg(lm.r))];
+      const [dx, dz] = [ground.x - lm.x, ground.z - lm.z];
+      return Math.abs(dx * c + dz * s) <= lm.shape.width / 2 && Math.abs(-dx * s + dz * c) <= lm.shape.depth / 2;
+    }) ?? null;
+  }
+
+  function placeItem(target) {
+    const item = itemOf(target);
+    const object = target === 'landmark' ? landmarkObject : target === 'second' ? secondObject : holders[target];
+    object.position.x = item.x;
+    object.position.z = item.z;
+    object.rotation.y = -deg(item.r ?? 0);
+    const label = labels.find(l => (typeof target === 'string' ? l.target === target : l.holder === holders[target]));
+    if (label?.point) label.point.set(item.x, 0, item.z);
+    if (label?.top) {
+      label.top.x = label.middle.x = item.x;
+      label.top.z = label.middle.z = item.z;
+    }
+    placeSelection();
+    renderer.shadowMap.needsUpdate = true;
+    requestRender();
+  }
+
+  function placeSelection() {
+    const target = host?.selected() ?? null;
+    if (!selectionMark || target === null) return;
+    const item = itemOf(target);
+    selectionMark.position.set(item.x, 0, item.z);
+    selectionMark.rotation.y = -deg(item.r ?? 0);
+    const css = getComputedStyle(root);
+    const state = host.fitState(target);
+    const colour = state === 'inside' ? '#16a34a' : state === 'edge' || state === 'overlap' ? css.getPropertyValue('--danger') : css.getPropertyValue('--text');
+    materials.selection.color.set(colour.trim());
+  }
+
+  function markSelection() {
+    if (selectionMark) {
+      scene.remove(selectionMark);
+      selectionMark.geometry.dispose();
+      selectionMark = null;
+    }
+    const target = host?.selected() ?? null;
+    const item = model && target !== null ? itemOf(target) : null;
+    if (item) {
+      const [w, d] = sizeOf(item);
+      const line = Math.max(w, d) * 0.03;
+      const outer = new THREE.Shape([[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => new THREE.Vector2(a * (w / 2 + line), b * (d / 2 + line))));
+      outer.holes.push(new THREE.Path([[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => new THREE.Vector2(a * w / 2, b * d / 2))));
+      selectionMark = new THREE.Mesh(new THREE.ShapeGeometry(outer).rotateX(-Math.PI / 2), materials.selection);
+      selectionMark.renderOrder = 10;
+      scene.add(selectionMark);
+      placeSelection();
+    }
+    requestRender();
+  }
+
+  // A pinch zooms on what's between the fingers. OrbitControls has moved the camera toward the
+  // point it turns around since the last frame, which spreads the ground out from that point by
+  // 1 / scale; sliding camera and point along the ground puts back what was under the fingers.
+  function holdPinchPoint() {
+    const scale = camera.position.distanceTo(controls.target) / lastDistance;
+    if (Math.abs(scale - 1) < 1e-4) return;
+    const [a, b] = [...fingers.values()];
+    camera.updateMatrixWorld();
+    aim({ clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2 });
+    const under = pointerRay.ray.intersectPlane(new THREE.Plane(Y_AXIS, -controls.target.y), new THREE.Vector3());
+    if (!under) return;
+    const shift = under.sub(controls.target).multiplyScalar(1 / scale - 1);
+    camera.position.add(shift);
+    controls.target.add(shift);
+  }
+
+  // These run before OrbitControls sees the pointer. It still gets the press, but while an object
+  // is being moved it doesn't get the movement, so the camera stays still; a second finger
+  // cancels the move and lets the pinch through.
+  function cancelDrag() {
+    if (!drag) return;
+    const { target, start } = drag;
+    drag = null;
+    Object.assign(itemOf(target), start);
+    placeItem(target);
+  }
+
+  function onGrab(e) {
+    const secondTap = tapTimer !== 0;
+    clearTimeout(tapTimer);
+    tapTimer = 0;
+    if (e.pointerType === 'touch') fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (!e.isPrimary) {
+      cancelDrag();
+      press = null;
+      return;
+    }
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const target = targetAt(e);
+    press = secondTap ? null : { x: e.clientX, y: e.clientY, target };
+    if (target === null || !host) return;
+    const item = itemOf(target);
+    const big = Math.max(...sizeOf(item), item.h ?? 0) * pxPerMeterAt(item.x, 0, item.z) > BIG_SHARE * Math.min(vw, vh);
+    const ground = groundPoint();
+    // On a touch screen a finger on an object may just be moving the camera: only a tap selects,
+    // and only what's selected can be dragged.
+    if (!ground || ((big || e.pointerType === 'touch') && host.selected() !== target)) return;
+    host.select(target);
+    drag = { target, dx: item.x - ground.x, dz: item.z - ground.z, from: { x: e.clientX, y: e.clientY }, start: { x: item.x, z: item.z }, moved: false };
+  }
+
+  function onDragMove(e) {
+    if (fingers.has(e.pointerId)) fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (!drag && e.pointerType === 'mouse' && !e.buttons) renderer.domElement.style.cursor = targetAt(e) === null ? '' : 'grab';
+    if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > DRAG_PX) press = null;
+    if (!drag || !e.isPrimary) return;
+    e.stopImmediatePropagation();
+    if (!drag.moved && Math.hypot(e.clientX - drag.from.x, e.clientY - drag.from.y) <= DRAG_PX) return;
+    drag.moved = true;
+    hint.hidden = true;
+    aim(e);
+    const ground = groundPoint();
+    if (!ground) return;
+    const at = host.dragTo(drag.target, ground.x + drag.dx, ground.z + drag.dz, SNAP_PX / pxPerMeterAt(ground.x, 0, ground.z));
+    Object.assign(itemOf(drag.target), { x: at.x, z: at.z });
+    placeItem(drag.target);
+  }
+
+  function onDrop(e) {
+    fingers.delete(e.pointerId);
+    if (!e.isPrimary) return;
+    if (drag) {
+      const { target, moved } = drag;
+      drag = null;
+      if (moved) host.drop(target, itemOf(target).x, itemOf(target).z);
+    } else if (press && e.type === 'pointerup') {
+      const { target } = press;
+      // A touch waits to see that it isn't the first half of a double tap or the start of a pinch.
+      if (e.pointerType === 'touch') {
+        tapTimer = setTimeout(() => {
+          tapTimer = 0;
+          host?.select(target);
+        }, TAP_WAIT_MS);
+      } else {
+        host?.select(target);
+      }
+    }
+    press = null;
   }
 
   // --- lifecycle -------------------------------------------------------------
@@ -831,13 +1092,24 @@ export function createView() {
       materials.landmarkFill = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.14, depthWrite: false, side: THREE.DoubleSide });
       materials.landmarkLine = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
       materials.landmarkMarks = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.7, side: THREE.DoubleSide });
+      materials.selection = new THREE.MeshBasicMaterial({ transparent: true, depthTest: false, side: THREE.DoubleSide });
+      materials.secondFill = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide });
+      materials.secondLine = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+
+      canvas.addEventListener('pointerdown', onGrab, true);
+      canvas.addEventListener('pointermove', onDragMove, true);
+      canvas.addEventListener('pointerup', onDrop, true);
+      canvas.addEventListener('pointercancel', onDrop, true);
 
       controls = new OrbitControls(camera, canvas);
       controls.enableDamping = true;
       controls.dampingFactor = 0.08;
       controls.screenSpacePanning = false;           // drag along the ground, like a map
       controls.maxPolarAngle = Math.PI / 2 - 0.002;  // down to eye level, never below the ground
-      controls.zoomToCursor = true;
+      // OrbitControls finds a pinch's middle from page coordinates, so once the page is scrolled it
+      // zooms at the wrong spot, deep into the ground. Touch screens use holdPinchPoint instead.
+      controls.zoomToCursor = !coarsePointer();
+      if (coarsePointer()) controls.rotateSpeed = 0.75;
       controls.autoRotateSpeed = 1.2;
       controls.listenToKeyEvents(canvas);            // arrow keys pan
       controls.addEventListener('start', onInteractionStart);
@@ -854,8 +1126,20 @@ export function createView() {
     },
 
     update(nextModel, nextOpts = {}) {
+      const builtBefore = builtFrom;
       model = nextModel;
       opts = { ...opts, ...nextOpts };
+      builtFrom = contentKey(model, opts);
+      // Only something's position or turn changed: move it, without building everything again.
+      if (content && nextOpts.reframe === false && builtFrom === builtBefore) {
+        model.references.forEach((_, i) => placeItem(i));
+        for (const target of ['landmark', 'second']) if (model[target]) placeItem(target);
+        fitView();
+        placeSun();
+        applyColors(); // the area colour may be what changed
+        requestRender();
+        return;
+      }
       const reframe = nextOpts.reframe !== false || !fitted;
       if (reframe && !introDone && !reducedMotion()) intro = { start: performance.now() };
       kit.setNight(opts.night);
@@ -884,6 +1168,7 @@ export function createView() {
       const { shape } = model;
       ground.setGrid(-shape.width / 2, -shape.depth / 2, opts.system === 'imperial' ? FT : 1);
       buildLabels();
+      markSelection();
       renderer.domElement.setAttribute('aria-label', t('aria.3d', { area: opts.areaLabel }) +
         (model.height ? t('aria.high', { d: formatLength(model.height, opts.system) }) : '') +
         (model.references.length ? t('aria.nextTo', { list: model.references.map(r => r.name).join(', ') }) : ''));
@@ -905,11 +1190,39 @@ export function createView() {
       requestRender();
     },
 
+    selectionChanged: markSelection,
+
+    // A still of the view, sharper than the screen, with the labels drawn on. It's all done before
+    // the browser next paints, so the screen never shows the change.
+    capture() {
+      const ratio = renderer.getPixelRatio();
+      if (selectionMark) selectionMark.visible = false;
+      renderer.setPixelRatio(pictureScale(vw, vh));
+      render(performance.now());
+      const { width, height } = renderer.domElement;
+      const { canvas, ctx } = newCanvas(width, height);
+      ctx.drawImage(renderer.domElement, 0, 0);
+      const scale = width / vw;
+      if (!labelsEl.classList.contains('waiting')) paintLabels(ctx, labelsEl, scale);
+      renderer.setPixelRatio(ratio);
+      if (selectionMark) selectionMark.visible = true;
+      render(performance.now());
+      return { canvas, scale };
+    },
+
+    // Shows an object at a new pose while it's being changed; saving is up to the caller.
+    poseObject(target, pose) {
+      Object.assign(itemOf(target), pose);
+      placeItem(target);
+    },
+
     unmount() {
+      clearTimeout(tapTimer);
       cancelAnimationFrame(frame);
       frame = 0;
       tween = null;
       intro = null;
+      selectionMark?.geometry.dispose();
       resizeObserver?.disconnect();
       removeGestures?.();
       controls?.dispose();
