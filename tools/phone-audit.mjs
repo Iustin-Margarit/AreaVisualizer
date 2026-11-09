@@ -76,6 +76,12 @@ const CHECK = `(() => {
     kids.forEach((a, i) => kids.slice(i + 1).forEach(c => { if (hits(box(a), box(c))) add(name(a) + ' overlaps ' + name(c), words(a)); }));
   }
 
+  // A list's rows end in the same place (buttons at the end of each row form a straight column).
+  for (const list of root.querySelectorAll('ul')) {
+    const ends = [...list.children].filter(li => shown(li) && li.lastElementChild && shown(li.lastElementChild) && !ignored(li)).map(li => box(li).right - box(li.lastElementChild).right);
+    if (ends.length > 1 && Math.max(...ends) - Math.min(...ends) > 1.5) add('the rows of ' + name(list) + ' don\\'t line up', words(list));
+  }
+
   if (root === document.body) {
     const overlays = ['.pill-toggle', '.history-tools', '#settings-button', '#fullscreen-button', '.stage-tools', '.legend-scale', '.legend-hint', '.camera-dock', '.draw-bar', '#drawer-button']
       .map(sel => document.querySelector(sel)).filter(el => el && shown(el));

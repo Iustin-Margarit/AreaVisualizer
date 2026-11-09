@@ -580,7 +580,7 @@ svg { flex: none; }
 }
 /* A long size wraps before a short name gets cut. */
 .object-chip > span:not(.dot) { flex: 1 0 auto; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.object-chip small { min-width: 0; color: var(--muted); text-align: right; }
+.object-chip small { min-width: 0; margin-left: auto; color: var(--muted); text-align: right; } /* size and × stay against the right edge */
 .object-chip button {
   flex: none;
   width: 28px;
