@@ -3,6 +3,13 @@ export default {
   locale: 'de-DE',
   ui: {
     'tagline': 'Sieh, wie groß eine Fläche wirklich ist',
+    'page.heading': '{area} – wie groß ist das?',
+    'page.title': '{area} – wie groß ist das? Maßstabsgetreu ansehen',
+    'page.about': 'Maßstabsgetreu neben Menschen, Autos und berühmten Orten, in 2D oder 3D. Kostenlos, ohne Anmeldung.',
+    'page.hectare': '1 Hektar',
+    'page.sizes': 'Weitere Größen',
+    'meta.description': 'Sieh, wie groß eine Fläche wirklich ist: m², Hektar oder Seitenlängen eingeben und mit Menschen, Autos, Gebäuden und berühmten Orten vergleichen, in 2D oder 3D.',
+    'footer.feedback': 'Verbesserung vorschlagen',
     'home': 'AreaVisualizer-Startseite',
     'language': 'Sprache',
     'units.group': 'Maßsystem',

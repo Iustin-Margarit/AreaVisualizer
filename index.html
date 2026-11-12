@@ -17,6 +17,17 @@
   <!-- The live address: update these four lines (and sitemap.xml, robots.txt) if it changes. -->
   <link rel="canonical" href="https://areavisualizer.vercel.app/">
   <meta property="og:url" content="https://areavisualizer.vercel.app/">
+  <!-- pages:head — written by tools/pages.mjs: this page in the other languages -->
+  <link rel="alternate" hreflang="en" href="https://areavisualizer.vercel.app/">
+  <link rel="alternate" hreflang="es" href="https://areavisualizer.vercel.app/es">
+  <link rel="alternate" hreflang="de" href="https://areavisualizer.vercel.app/de">
+  <link rel="alternate" hreflang="fr" href="https://areavisualizer.vercel.app/fr">
+  <link rel="alternate" hreflang="it" href="https://areavisualizer.vercel.app/it">
+  <link rel="alternate" hreflang="pt" href="https://areavisualizer.vercel.app/pt">
+  <link rel="alternate" hreflang="ro" href="https://areavisualizer.vercel.app/ro">
+  <link rel="alternate" hreflang="ru" href="https://areavisualizer.vercel.app/ru">
+  <link rel="alternate" hreflang="x-default" href="https://areavisualizer.vercel.app/">
+  <!-- /pages:head -->
   <!-- Bump ?v= when og-image.png changes: chat apps cache the picture by its address. -->
   <meta property="og:image" content="https://areavisualizer.vercel.app/og-image.png?v=3">
   <meta property="og:image:type" content="image/png">
@@ -324,6 +335,10 @@
   </main>
 
   <footer class="footer">
+    <!-- pages:links — written by tools/pages.mjs: the pages for common sizes, in this language -->
+    <nav class="sizes" aria-label="Other sizes"><span>Other sizes:</span> <a href="10-m2">10 m²</a> <a href="20-m2">20 m²</a> <a href="30-m2">30 m²</a> <a href="50-m2">50 m²</a> <a href="100-m2">100 m²</a> <a href="200-m2">200 m²</a> <a href="500-m2">500 m²</a> <a href="1000-m2">1,000 m²</a> <a href="1-hectare">1 hectare</a> <a href="1-km2">1 km²</a> <a href="100-sq-ft">100 sq ft</a> <a href="200-sq-ft">200 sq ft</a> <a href="500-sq-ft">500 sq ft</a> <a href="1000-sq-ft">1,000 sq ft</a> <a href="2000-sq-ft">2,000 sq ft</a> <a href="1-acre">1 acre</a> <a href="5-acres">5 acres</a> <a href="10-acres">10 acres</a> <a href="1-square-mile">1 square mile</a></nav>
+    <!-- /pages:links -->
+    <p><a href="https://github.com/Iustin-Margarit/AreaVisualizer/issues" target="_blank" rel="noopener" data-i18n="footer.feedback">Suggest an improvement</a></p>
     <p data-i18n="footer.note">No sign-up, no tracking. Sizes of everyday objects are typical values; landmark outlines are scaled to their official areas.</p>
     <details id="credits">
       <summary data-i18n="footer.credits">Credits</summary>

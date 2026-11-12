@@ -3,6 +3,13 @@ export default {
   locale: 'es-ES',
   ui: {
     'tagline': 'Descubre el tamaño real de una superficie',
+    'page.heading': '¿Qué tan grande es {area}?',
+    'page.title': '¿Qué tan grande es {area}? Míralo a escala',
+    'page.about': 'Míralo a escala junto a personas, coches y lugares famosos, en 2D o 3D. Gratis y sin registro.',
+    'page.hectare': '1 hectárea',
+    'page.sizes': 'Otros tamaños',
+    'meta.description': 'Descubre el tamaño real de una superficie: escribe m², hectáreas o sus lados y compárala con personas, coches, edificios y lugares famosos en 2D o 3D.',
+    'footer.feedback': 'Sugerir una mejora',
     'home': 'Inicio de AreaVisualizer',
     'language': 'Idioma',
     'units.group': 'Sistema de medidas',

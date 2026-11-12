@@ -3,6 +3,13 @@ export default {
   locale: 'fr-FR',
   ui: {
     'tagline': 'Visualisez la taille réelle d’une surface',
+    'page.heading': '{area}, c’est grand comment\u00a0?',
+    'page.title': '{area}, c’est grand comment\u00a0? Voyez-le à l’échelle',
+    'page.about': 'À l’échelle, à côté de personnes, de voitures et de lieux célèbres, en 2D ou en 3D. Gratuit, sans inscription.',
+    'page.hectare': '1 hectare',
+    'page.sizes': 'Autres tailles',
+    'meta.description': 'Voyez la taille réelle d’une surface\u00a0: saisissez des m², des hectares ou les côtés et comparez-la à des personnes, des voitures, des bâtiments et des lieux célèbres en 2D ou en 3D.',
+    'footer.feedback': 'Suggérer une amélioration',
     'home': 'Accueil AreaVisualizer',
     'language': 'Langue',
     'units.group': 'Système de mesure',

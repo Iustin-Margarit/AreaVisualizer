@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="it" data-lang="it" data-start="m=area&amp;a=500&amp;u=m2">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e0e0f" media="(prefers-color-scheme: dark)">
+  <title>500 m²: quanto spazio è? Guardalo in scala · AreaVisualizer</title>
+  <meta name="description" content="500 m² ≈ 1,1 campi da basket · ≈ 1,9 campi da tennis. In scala accanto a persone, auto e luoghi famosi, in 2D o 3D. Gratis, senza registrazione.">
+  <meta property="og:title" content="500 m²: quanto spazio è? Guardalo in scala · AreaVisualizer">
+  <meta property="og:description" content="500 m² ≈ 1,1 campi da basket · ≈ 1,9 campi da tennis. In scala accanto a persone, auto e luoghi famosi, in 2D o 3D. Gratis, senza registrazione.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="AreaVisualizer">
+  <meta name="google-site-verification" content="-ohKUG5GE1FBHuNwGwy8QvDgbajP8UNvAjNvAhy1YJ0">
+  <meta property="og:image:alt" content="AreaVisualizer: an area shown in 3D next to a person, a car and a tree">
+  <!-- The live address: update these four lines (and sitemap.xml, robots.txt) if it changes. -->
+  <link rel="canonical" href="https://areavisualizer.vercel.app/it-500-m2">
+  <meta property="og:url" content="https://areavisualizer.vercel.app/it-500-m2">
+  <!-- pages:head — written by tools/pages.mjs: this page in the other languages -->
+  <link rel="alternate" hreflang="en" href="https://areavisualizer.vercel.app/500-m2">
+  <link rel="alternate" hreflang="es" href="https://areavisualizer.vercel.app/es-500-m2">
+  <link rel="alternate" hreflang="de" href="https://areavisualizer.vercel.app/de-500-m2">
+  <link rel="alternate" hreflang="fr" href="https://areavisualizer.vercel.app/fr-500-m2">
+  <link rel="alternate" hreflang="it" href="https://areavisualizer.vercel.app/it-500-m2">
+  <link rel="alternate" hreflang="pt" href="https://areavisualizer.vercel.app/pt-500-m2">
+  <link rel="alternate" hreflang="ro" href="https://areavisualizer.vercel.app/ro-500-m2">
+  <link rel="alternate" hreflang="ru" href="https://areavisualizer.vercel.app/ru-500-m2">
+  <link rel="alternate" hreflang="x-default" href="https://areavisualizer.vercel.app/500-m2">
+  <!-- /pages:head -->
+  <!-- Bump ?v= when og-image.png changes: chat apps cache the picture by its address. -->
+  <meta property="og:image" content="https://areavisualizer.vercel.app/og-image.png?v=3">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='3' width='26' height='26' rx='6' fill='%231d1d20'/%3E%3Cpath d='M11.7 3v26M20.3 3v26M3 11.7h26M3 20.3h26' stroke='%23fff' stroke-opacity='.5' stroke-width='1.5'/%3E%3C/svg%3E">
+  <!-- Installing the site on a phone or computer (sw.js keeps it working offline). -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <!-- Pick light or dark (remembered choice, else the system's) before the first paint. -->
+  <script>
+    let theme;
+    try { theme = JSON.parse(localStorage.getItem('areavisualizer:prefs'))?.theme; } catch {}
+    const dark = theme === 'dark' || (theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.dataset.mode = dark ? 'dark' : 'light';
+    // The opening splash (.intro-splash): once per visit (a new tab, a followed link), never on a
+    // reload or going back, and not for people who prefer less motion.
+    try {
+      const fresh = performance.getEntriesByType('navigation')[0]?.type === 'navigate';
+      if (fresh && !sessionStorage.getItem('areavisualizer:intro') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('intro');
+        sessionStorage.setItem('areavisualizer:intro', '1');
+      }
+    } catch {}
+  </script>
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- three.js for the 3D view: our own copy (tools/vendor.mjs), only downloaded when someone
+       opens 3D. Everything the page loads comes from this site. -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/build/three.module.min.js",
+        "three/addons/": "./vendor/three/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <!-- Opening splash: the logo draws itself, one square lights up, the name slides in. -->
+  <div class="intro-splash" aria-hidden="true">
+    <svg class="intro-logo" viewBox="0 0 32 32">
+      <rect class="frame" x="3" y="3" width="26" height="26" rx="7" pathLength="1"/>
+      <path class="line" d="M11.7 3v26" pathLength="1"/>
+      <path class="line" d="M20.3 3v26" pathLength="1"/>
+      <path class="line" d="M3 11.7h26" pathLength="1"/>
+      <path class="line" d="M3 20.3h26" pathLength="1"/>
+      <rect class="cell" x="12.4" y="12.4" width="7.2" height="7.2" rx="1.2"/>
+    </svg>
+    <strong class="intro-name">AreaVisualizer</strong>
+  </div>
+  <!-- Text follows the visitor's language: data-i18n sets an element's text, data-i18n-attr sets
+       attributes ("title:key;aria-label:key"). The keys are in js/i18n/en.js. -->
+  <header class="header">
+    <a class="brand" href="./" data-i18n-attr="aria-label:home">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="3" y="3" width="26" height="26" rx="7"/>
+        <path d="M11.7 3v26M20.3 3v26M3 11.7h26M3 20.3h26"/>
+      </svg>
+      <span>
+        <strong>AreaVisualizer</strong>
+      </span>
+    </a>
+    <div class="header-actions">
+      <div id="units-toggle" class="segmented compact units-toggle" role="group" data-i18n-attr="aria-label:units.group">
+        <button type="button" data-units="metric" data-i18n="units.metric" data-i18n-attr="title:units.metricTitle">Metrico</button>
+        <button type="button" data-units="imperial" data-i18n="units.imperial" data-i18n-attr="title:units.imperialTitle">Imperiale</button>
+        <button type="button" data-units="both" data-i18n="units.both" data-i18n-attr="title:units.bothTitle">Entrambi</button>
+      </div>
+      <div class="lang-menu">
+        <button type="button" class="lang-button" aria-expanded="false" aria-controls="language-panel">
+          <span class="lang-flag"></span>
+          <span class="lang-code" aria-hidden="true">EN</span>
+          <svg class="chevron" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg>
+        </button>
+        <div id="language-panel" class="popover lang-panel" role="dialog" data-i18n-attr="aria-label:language" hidden>
+          <p class="label lang-title" data-i18n="language">Lingua</p>
+          <ul class="lang-list"></ul>
+        </div>
+      </div>
+      <button id="theme-toggle" class="icon-button" type="button">
+        <svg class="icon-moon" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 12.6A7 7 0 017.4 3.5a7 7 0 109.1 9.1z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6"/><path d="M10 1.5v2.2M10 16.3v2.2M1.5 10h2.2M16.3 10h2.2M4 4l1.6 1.6M14.4 14.4L16 16M4 16l1.6-1.6M14.4 5.6L16 4"/></svg>
+      </button>
+      <button id="share" class="share" type="button">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 9.5l3-3M7 4.5l1.2-1.2a2.8 2.8 0 014 4L11 8.5M9 11.5l-1.2 1.2a2.8 2.8 0 01-4-4L5 7.5"/></svg>
+        <span class="share-label" data-i18n="share.copy">Copia link</span>
+      </button>
+    </div>
+  </header>
+  <h1 class="page-title">500 m²: quanto spazio è?</h1>
+  <p id="answer" class="answer"><strong>500 m²</strong> ≈ 1,1 campi da basket · ≈ 1,9 campi da tennis</p>
+
+  <main class="layout">
+    <form id="controls" class="card size-card" autocomplete="off">
+      <div class="card-head">
+        <div class="card-head-title">
+          <h2 class="card-title" data-i18n="size.title">Dimensioni</h2>
+          <button type="button" id="reset-size" class="reset-button" data-i18n-attr="title:size.resetTitle">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8a4.5 4.5 0 101.3-3.2"/><path d="M3.5 2.5v2.8h2.8"/></svg><span data-i18n="size.reset">Azzera</span>
+          </button>
+        </div>
+        <div id="shape-picker" class="segmented compact" role="group" data-i18n-attr="aria-label:shape.group">
+          <button type="button" data-shape="rectangle" data-i18n-attr="title:shape.rectangleTitle"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="5" width="14" height="10" rx="1.5"/></svg><span data-i18n="shape.rectangle">Rettangolo</span></button>
+          <button type="button" data-shape="circle" data-i18n-attr="title:shape.circle"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/></svg><span data-i18n="shape.circle">Cerchio</span></button>
+          <button type="button" data-shape="custom" data-i18n-attr="title:shape.custom"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 3.5h7v6h6v7h-13z"/></svg><span data-i18n="shape.custom">Personalizzata</span></button>
+        </div>
+      </div>
+
+      <div id="custom-tools" class="shape-tiles" hidden>
+        <button type="button" class="shape-tile" data-template="l" data-i18n-attr="aria-label:custom.lshape;title:custom.lshape"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 3.5h7v6h6v7h-13z"/></svg></button>
+        <button type="button" class="shape-tile" data-template="t" data-i18n-attr="aria-label:custom.tshape;title:custom.tshape"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4h14v5h-4.5v7h-5V9H3z"/></svg></button>
+        <button type="button" class="shape-tile" data-template="u" data-i18n-attr="aria-label:custom.ushape;title:custom.ushape"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 4h4v7h5V4h4v12h-13z"/></svg></button>
+        <button type="button" class="shape-tile" data-template="triangle" data-i18n-attr="aria-label:custom.triangle;title:custom.triangle"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5l7 13H3z"/></svg></button>
+        <button type="button" id="custom-draw" class="shape-tile draw-tile"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16l-3.6.6L4 13z"/></svg><span data-i18n="custom.draw">Disegna</span></button>
+      </div>
+
+      <!-- Phones join the sides and the area into one box (styles.css, .size-inputs). -->
+      <div class="size-inputs">
+        <div class="field">
+          <label for="dim-width" id="sides-label">Width × length</label>
+          <div class="input-group sides">
+            <input id="dim-width" type="text" inputmode="decimal" enterkeyhint="next" spellcheck="false">
+            <span class="times" aria-hidden="true">×</span>
+            <input id="dim-length" type="text" inputmode="decimal" enterkeyhint="done" spellcheck="false" data-i18n-attr="aria-label:sides.length">
+            <span class="unit-box"><select id="length-unit" data-i18n-attr="aria-label:sides.unit"></select><span class="unit-short" aria-hidden="true"></span></span>
+          </div>
+          <p class="alt-line" id="sides-alt" hidden></p>
+        </div>
+
+        <div class="field result-field">
+          <label for="area-value" id="area-label" data-i18n="area.label">Superficie</label>
+          <div class="input-group area-group">
+            <span class="equals" aria-hidden="true">=</span>
+            <input id="area-value" type="text" inputmode="decimal" enterkeyhint="done" spellcheck="false">
+            <span class="unit-box"><select id="area-unit" data-i18n-attr="aria-label:area.unit"></select><span class="unit-short" aria-hidden="true"></span></span>
+          </div>
+          <p class="alt-line" id="area-alt" hidden></p>
+        </div>
+      </div>
+
+      <!-- Height and a second area: side by side while they're only buttons, a row each once added. -->
+      <div class="extras">
+      <div class="field height-field">
+        <button type="button" id="add-height" class="add-button">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg><span data-i18n="height.add">Aggiungi altezza</span>
+        </button>
+        <div class="field-head" id="height-head" hidden>
+          <label for="dim-height" data-i18n="height.label">Altezza</label>
+          <button type="button" id="remove-height" class="reset-button" data-i18n-attr="title:height.removeTitle">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg><span data-i18n="height.remove">Rimuovi</span>
+          </button>
+        </div>
+        <div class="input-group" id="height-group" hidden>
+          <input id="dim-height" type="text" inputmode="decimal" enterkeyhint="done" spellcheck="false">
+          <span class="unit-box"><select id="height-unit" data-i18n-attr="aria-label:height.unit"></select><span class="unit-short" aria-hidden="true"></span></span>
+        </div>
+        <p class="alt-line" id="height-alt" hidden></p>
+        <p class="volume-line" id="volume" aria-live="polite" hidden></p>
+      </div>
+
+      <div class="field second-field">
+        <button type="button" id="add-second" class="add-button">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg><span data-i18n="second.add">Aggiungi una seconda superficie</span>
+        </button>
+        <div class="field-head" id="second-head" hidden>
+          <label for="second-width" data-i18n="second.name">Seconda superficie</label>
+          <div class="second-actions">
+            <div id="second-shape" class="segmented compact" role="group" data-i18n-attr="aria-label:shape.group">
+              <button type="button" data-second-shape="rectangle" data-i18n-attr="title:shape.rectangleTitle;aria-label:shape.rectangle"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="5" width="14" height="10" rx="1.5"/></svg></button>
+              <button type="button" data-second-shape="circle" data-i18n-attr="title:shape.circle;aria-label:shape.circle"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/></svg></button>
+            </div>
+            <button type="button" id="remove-second" class="reset-button">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg><span data-i18n="height.remove">Rimuovi</span>
+            </button>
+          </div>
+        </div>
+        <div class="input-group sides" id="second-group" hidden>
+          <input id="second-width" type="text" inputmode="decimal" spellcheck="false" data-i18n-attr="aria-label:sides.width">
+          <span class="times" id="second-times" aria-hidden="true">×</span>
+          <input id="second-length" type="text" inputmode="decimal" spellcheck="false" data-i18n-attr="aria-label:sides.length">
+          <span class="unit-box"><select id="second-unit" data-i18n-attr="aria-label:sides.unit"></select><span class="unit-short" aria-hidden="true"></span></span>
+        </div>
+        <div class="input-group area-group" id="second-area-group" hidden>
+          <span class="equals" aria-hidden="true">=</span>
+          <input id="second-area" type="text" inputmode="decimal" spellcheck="false" data-i18n-attr="aria-label:area.label">
+          <span class="second-area-unit"></span>
+        </div>
+        <p class="volume-line" id="second-result" aria-live="polite" hidden></p>
+      </div>
+      </div>
+
+      <details class="fold">
+        <summary class="label" data-i18n="presets">Esempi</summary>
+        <div id="presets" class="chips"></div>
+      </details>
+    </form>
+
+    <section id="stage" class="stage" data-i18n-attr="aria-label:stage.label;data-loading:stage.loading">
+      <div class="stage-chrome">
+        <!-- Phones: a strip down each side scrolls the page, so the view never traps you. -->
+        <div class="scroll-edge" aria-hidden="true"></div>
+        <div class="scroll-edge right" aria-hidden="true"></div>
+        <!-- Full screen on computers: opens a side panel with the size and objects cards. -->
+        <aside id="stage-drawer" class="stage-drawer" hidden></aside>
+        <div class="stage-start">
+          <button id="drawer-button" class="tool drawer-button" type="button" aria-expanded="false" aria-controls="stage-drawer">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M8 4v12"/></svg>
+            <span data-i18n="drawer.menu">Menu</span>
+          </button>
+          <div id="view-toggle" class="pill-toggle" role="group" data-i18n-attr="aria-label:view.group"></div>
+          <div class="history-tools">
+            <button id="undo-button" class="tool" type="button" data-i18n-attr="aria-label:history.undo;title:history.undo" disabled>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 5L3.5 9l4 4"/><path d="M4 9h8a4 4 0 010 8h-2"/></svg>
+            </button>
+            <button id="redo-button" class="tool" type="button" data-i18n-attr="aria-label:history.redo;title:history.redo" disabled>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 5l4 4-4 4"/><path d="M16 9H8a4 4 0 000 8h2"/></svg>
+            </button>
+            <button id="picture-button" class="tool" type="button" data-i18n-attr="aria-label:picture.save;title:picture.save">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 014.5 6h2L8 4h4l1.5 2h2A1.5 1.5 0 0117 7.5v7a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 013 14.5z"/><circle cx="10" cy="10.8" r="2.8"/></svg>
+            </button>
+            <button id="areas-button" class="tool" type="button" data-i18n-attr="aria-label:areas.title;title:areas.title" aria-expanded="false" aria-controls="areas-panel">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 3h9a1 1 0 011 1v13L10 13.4 4.5 17V4a1 1 0 011-1z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="chrome-actions">
+          <button id="settings-button" class="tool" type="button" data-i18n-attr="aria-label:settings.title;title:settings.title" aria-expanded="false" aria-controls="settings-panel">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h7M14 6h3M3 14h3M10 14h7"/><circle cx="12" cy="6" r="2"/><circle cx="8" cy="14" r="2"/></svg>
+          </button>
+          <button id="fullscreen-button" class="tool" type="button">
+            <svg class="icon-expand" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8V3h5M12 3h5v5M17 12v5h-5M8 17H3v-5"/></svg>
+            <svg class="icon-collapse" viewBox="0 0 20 20" aria-hidden="true"><path d="M8 3v5H3M17 8h-5V3M12 17v-5h5M3 12h5v5"/></svg>
+          </button>
+        </div>
+        <!-- Drawing a shape: the one next step, and what can be done about the corners so far. -->
+        <div id="draw-bar" class="draw-bar" hidden>
+          <span class="draw-prompt" aria-live="polite"></span>
+          <div class="draw-actions">
+            <button type="button" class="tool" data-draw="back" data-i18n-attr="aria-label:draw.back;title:draw.back"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 5L3.5 9l4 4"/><path d="M4 9h8a4 4 0 010 8h-2"/></svg></button>
+            <button type="button" class="tool" data-draw="cancel" data-i18n-attr="aria-label:custom.cancel;title:custom.cancel"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
+            <button type="button" class="draw-done" data-draw="done"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span data-i18n="draw.done">Fine</span></button>
+          </div>
+        </div>
+        <!-- The selected object: turn, resize, copy or remove it (ui/arrange.js). -->
+        <aside id="arrange-panel" class="arrange" hidden>
+          <div class="arrange-head">
+            <!-- The object seen from above, turned as it is in the picture. -->
+            <span class="arrange-swatch" aria-hidden="true"><svg viewBox="-12 -12 24 24"><g class="arrange-footprint"><rect/><circle r="1.6"/></g></svg></span>
+            <div class="arrange-title">
+              <strong class="arrange-name"></strong>
+              <span class="arrange-dims"></span>
+              <span class="arrange-status" aria-live="polite"></span>
+            </div>
+            <button type="button" class="arrange-close" data-do="close" data-i18n-attr="aria-label:arrange.close;title:arrange.close"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"/></svg></button>
+          </div>
+          <div class="arrange-row arrange-turning">
+            <button type="button" class="arrange-turn" data-do="turn" data-i18n-attr="aria-label:arrange.turn;title:arrange.turn"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15.5 10a5.5 5.5 0 11-1.6-3.9"/><path d="M14.4 2.8v3.6h-3.6"/></svg>90°</button>
+            <input class="arrange-angle" type="range" min="0" max="359" step="1" data-i18n-attr="aria-label:arrange.angle">
+            <output class="arrange-degrees"></output>
+          </div>
+          <div class="arrange-row arrange-actions">
+            <button type="button" data-do="size" aria-expanded="false"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="6.5" width="15" height="7" rx="1.5"/><path d="M6 6.5v3M9 6.5v2M12 6.5v3M15 6.5v2"/></svg><span data-i18n="size.title">Dimensioni</span></button>
+            <button type="button" data-do="duplicate"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2"/></svg><span data-i18n="arrange.duplicate">Duplica</span></button>
+            <button type="button" class="arrange-remove" data-do="remove"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 5.5h13M8 5.5V4a1 1 0 011-1h2a1 1 0 011 1v1.5M5.5 5.5l.7 10a1.5 1.5 0 001.5 1.5h4.6a1.5 1.5 0 001.5-1.5l.7-10"/></svg><span data-i18n="compare.remove">Rimuovi</span></button>
+          </div>
+          <div class="arrange-sizes">
+            <label><span data-i18n="sides.width">Larghezza</span><span class="arrange-field"><input name="w" inputmode="decimal" enterkeyhint="next" autocomplete="off"><span class="arrange-unit"></span></span></label>
+            <label><span data-i18n="compare.depth">Profondità</span><span class="arrange-field"><input name="d" inputmode="decimal" enterkeyhint="next" autocomplete="off"><span class="arrange-unit"></span></span></label>
+            <label><span data-i18n="height.label">Altezza</span><span class="arrange-field"><input name="h" inputmode="decimal" enterkeyhint="done" autocomplete="off"><span class="arrange-unit"></span></span></label>
+          </div>
+        </aside>
+        <!-- Saved areas, kept on this device (ui/areas.js). -->
+        <div id="areas-panel" class="popover areas" role="dialog" data-i18n-attr="aria-label:areas.title" hidden>
+          <p class="label" data-i18n="areas.title">Le mie superfici</p>
+          <div class="areas-actions"></div>
+          <ul class="areas-list"></ul>
+        </div>
+        <div id="settings-panel" class="popover settings" role="dialog" data-i18n-attr="aria-label:settings.title" hidden>
+          <div class="popover-row">
+            <span class="label" data-i18n="settings.theme">Tema</span>
+            <div class="segmented compact" data-setting="theme" role="group" data-i18n-attr="aria-label:settings.theme">
+              <button type="button" data-value="auto" data-i18n="settings.auto">Auto</button>
+              <button type="button" data-value="light" data-i18n="settings.light">Chiaro</button>
+              <button type="button" data-value="dark" data-i18n="settings.dark">Scuro</button>
+            </div>
+          </div>
+          <label class="switch"><input type="checkbox" data-setting="grid"><span data-i18n="settings.grid">Griglia</span></label>
+          <label class="switch"><input type="checkbox" data-setting="measures"><span data-i18n="settings.measures">Misure</span></label>
+          <label class="switch"><input type="checkbox" data-setting="labels"><span data-i18n="settings.labels">Etichette</span></label>
+          <label class="switch"><input type="checkbox" data-setting="shadows"><span><span data-i18n="settings.shadows">Ombre</span> <small>3D</small></span></label>
+          <label class="switch"><input type="checkbox" data-setting="glow"><span><span data-i18n="settings.glow">Bagliore</span> <small>3D</small></span></label>
+          <div class="popover-row">
+            <span class="label" data-i18n="settings.color">Colore della superficie</span>
+            <div class="swatches" data-setting="color" role="group" data-i18n-attr="aria-label:settings.color"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="compare" class="card compare-card" data-i18n-attr="aria-label:compare.title"></section>
+
+    <section id="results" class="card results" aria-live="polite"></section>
+  </main>
+
+  <footer class="footer">
+    <!-- pages:links — written by tools/pages.mjs: the pages for common sizes, in this language -->
+    <nav class="sizes" aria-label="Altre misure"><span>Altre misure:</span> <a href="it-10-m2">10 m²</a> <a href="it-20-m2">20 m²</a> <a href="it-30-m2">30 m²</a> <a href="it-50-m2">50 m²</a> <a href="it-100-m2">100 m²</a> <a href="it-200-m2">200 m²</a> <span aria-current="page">500 m²</span> <a href="it-1000-m2">1.000 m²</a> <a href="it-1-hectare">1 ettaro</a> <a href="it-1-km2">1 km²</a></nav>
+    <!-- /pages:links -->
+    <p><a href="https://github.com/Iustin-Margarit/AreaVisualizer/issues" target="_blank" rel="noopener" data-i18n="footer.feedback">Suggerisci un miglioramento</a></p>
+    <p data-i18n="footer.note">Nessuna registrazione, nessun tracciamento. Per gli oggetti di tutti i giorni usiamo misure medie; i contorni dei luoghi sono in scala secondo la loro superficie ufficiale.</p>
+    <details id="credits">
+      <summary data-i18n="footer.credits">Crediti</summary>
+      <div class="credits-body"></div>
+    </details>
+  </footer>
+  <!-- The picture the camera button made, to save or share (ui/picture.js). -->
+  <dialog id="picture-dialog" class="picture-dialog" data-i18n-attr="aria-label:picture.save">
+    <img alt="">
+    <div class="picture-actions">
+      <button type="button" class="tool" data-picture="close" data-i18n-attr="aria-label:arrange.close;title:arrange.close"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
+      <button type="button" class="picture-action" data-picture="share" hidden><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 12.5V3M6.5 6.2L10 3l3.5 3.2M4 11v4.5A1.5 1.5 0 005.5 17h9a1.5 1.5 0 001.5-1.5V11"/></svg><span data-i18n="share.share">Condividi</span></button>
+      <button type="button" class="picture-action primary" data-picture="save"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9.5M6.5 9.3L10 12.5l3.5-3.2M4 16.5h12"/></svg><span data-i18n="picture.download">Salva</span></button>
+    </div>
+  </dialog>
+  <!-- Browsers too old for the site (no import maps: before Chrome 89, iOS 16.4) get a note instead of a blank page. -->
+  <p id="too-old" class="too-old" hidden>This site needs a newer browser. Please update your browser (or try Chrome, Firefox, Safari or Edge) to use AreaVisualizer.</p>
+  <script>if (!(HTMLScriptElement.supports && HTMLScriptElement.supports("importmap"))) document.getElementById("too-old").hidden = false;</script>
+</body>
+</html>

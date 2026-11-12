@@ -3,6 +3,13 @@ export default {
   locale: 'pt-BR',
   ui: {
     'tagline': 'Veja o tamanho real de uma área',
+    'page.heading': 'Qual é o tamanho de {area}?',
+    'page.title': 'Qual é o tamanho de {area}? Veja em escala',
+    'page.about': 'Em escala, ao lado de pessoas, carros e lugares famosos, em 2D ou 3D. Grátis, sem cadastro.',
+    'page.hectare': '1 hectare',
+    'page.sizes': 'Outros tamanhos',
+    'meta.description': 'Veja o tamanho real de uma área: digite m², hectares ou os lados e compare com pessoas, carros, prédios e lugares famosos em 2D ou 3D.',
+    'footer.feedback': 'Sugerir uma melhoria',
     'home': 'Início do AreaVisualizer',
     'language': 'Idioma',
     'units.group': 'Sistema de medidas',

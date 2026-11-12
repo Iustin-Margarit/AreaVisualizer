@@ -329,6 +329,11 @@ svg { flex: none; }
 .footer summary { cursor: pointer; width: fit-content; }
 .footer ul { margin: 6px 0; padding-left: 18px; columns: 2 260px; }
 .footer a { color: inherit; }
+/* Links to the pages for common sizes (tools/pages.mjs). */
+.sizes { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 10px; }
+.sizes a { text-decoration: none; white-space: nowrap; }
+.sizes a:hover { color: var(--text); text-decoration: underline; }
+.sizes [aria-current] { color: var(--text); font-weight: 600; white-space: nowrap; }
 
 /* ---------- Size card ---------- */
 .field { display: grid; gap: 6px; min-width: 0; }

@@ -4,6 +4,13 @@ export default {
   locale: 'en-US',
   ui: {
     'tagline': 'See how big an area really is',
+    'page.heading': 'How big is {area}?',
+    'page.title': 'How big is {area}? See it to scale',
+    'page.about': 'See it to scale next to people, cars and famous places, in 2D or 3D. Free, no sign-up.',
+    'page.hectare': '1 hectare',
+    'page.sizes': 'Other sizes',
+    'meta.description': 'See how big an area really is: type m², ft², acres or the sides and compare it with people, cars, buildings and famous places in 2D or 3D.',
+    'footer.feedback': 'Suggest an improvement',
     'home': 'AreaVisualizer home',
     'language': 'Language',
     'units.group': 'Measuring system',

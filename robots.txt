@@ -1,3 +1,5 @@
 User-agent: *
 Allow: /
+# The size pages' files; their addresses are /1-acre, /ro-100-m2... (vercel.json)
+Disallow: /pages/
 Sitemap: https://areavisualizer.vercel.app/sitemap.xml

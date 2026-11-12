@@ -3,6 +3,13 @@ export default {
   locale: 'it-IT',
   ui: {
     'tagline': 'Scopri quanto è grande davvero una superficie',
+    'page.heading': '{area}: quanto spazio è?',
+    'page.title': '{area}: quanto spazio è? Guardalo in scala',
+    'page.about': 'In scala accanto a persone, auto e luoghi famosi, in 2D o 3D. Gratis, senza registrazione.',
+    'page.hectare': '1 ettaro',
+    'page.sizes': 'Altre misure',
+    'meta.description': 'Scopri quanto è grande davvero una superficie: inserisci m², ettari o i lati e confrontala con persone, auto, edifici e luoghi famosi in 2D o 3D.',
+    'footer.feedback': 'Suggerisci un miglioramento',
     'home': 'Home di AreaVisualizer',
     'language': 'Lingua',
     'units.group': 'Sistema di misura',

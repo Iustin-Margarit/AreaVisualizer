@@ -4,6 +4,13 @@ export default {
   locale: 'ro-RO',
   ui: {
     'tagline': 'Vezi cât de mare e, de fapt, o suprafață',
+    'page.heading': 'Cât înseamnă {area}?',
+    'page.title': 'Cât înseamnă {area}? Vezi la scară reală',
+    'page.about': 'La scară reală, lângă oameni, mașini și locuri celebre, în 2D sau 3D. Gratuit, fără cont.',
+    'page.hectare': '1 hectar',
+    'page.sizes': 'Alte suprafețe',
+    'meta.description': 'Vezi cât de mare e de fapt o suprafață: scrie m², hectare sau laturile și compar-o cu oameni, mașini, clădiri și locuri celebre, în 2D sau 3D.',
+    'footer.feedback': 'Sugerează o îmbunătățire',
     'home': 'Pagina principală AreaVisualizer',
     'language': 'Limbă',
     'units.group': 'Unități de măsură',
