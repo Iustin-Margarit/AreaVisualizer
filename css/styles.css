@@ -181,8 +181,9 @@ svg { flex: none; }
   .brand span { min-width: 0; overflow: hidden; }
   .lang-button { padding: 0 9px; }
   .lang-button .chevron { display: none; }
-  .share-label { display: none; }
-  .share { width: 40px; padding: 0; }
+  /* Icon only, but screen readers still read the label. */
+  .share-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .share { position: relative; width: 40px; padding: 0; }
 }
 
 .icon-button, .share, .lang-button {
@@ -229,7 +230,8 @@ svg { flex: none; }
   box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.14);
   background: radial-gradient(circle at 32% 26%, rgb(255 255 255 / 0.42), transparent 48%);
 }
-.lang-panel { top: calc(100% + 8px); right: 0; width: 200px; padding: 8px; display: grid; gap: 4px; }
+/* As wide as the longest name needs (large system text too), never past the screen. */
+.lang-panel { top: calc(100% + 8px); right: 0; width: max-content; min-width: 200px; max-width: calc(100vw - 24px); padding: 8px; display: grid; gap: 4px; }
 .lang-title { margin: 2px 8px 2px; }
 .lang-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .lang-list button {
@@ -330,8 +332,8 @@ svg { flex: none; }
 .footer ul { margin: 6px 0; padding-left: 18px; columns: 2 260px; }
 .footer a { color: inherit; }
 /* Links to the pages for common sizes (tools/pages.mjs). */
-.sizes { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 10px; }
-.sizes a { text-decoration: none; white-space: nowrap; }
+.sizes { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; margin-bottom: 10px; }
+.sizes a { padding-block: 5px; text-decoration: none; white-space: nowrap; } /* ≥ 24 px tall to tap */
 .sizes a:hover { color: var(--text); text-decoration: underline; }
 .sizes [aria-current] { color: var(--text); font-weight: 600; white-space: nowrap; }
 

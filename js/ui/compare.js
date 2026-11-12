@@ -144,6 +144,14 @@ export function initCompare(el, store, { select }) {
     }
   });
 
+  // Keyboards: Enter or Space on an object's row selects it, like a click.
+  chips.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-select]')) {
+      e.preventDefault();
+      e.target.click();
+    }
+  });
+
   form.addEventListener('submit', e => {
     e.preventDefault();
     const toM = LENGTH_UNITS[store.get().lengthUnit].toM;
@@ -168,7 +176,7 @@ export function initCompare(el, store, { select }) {
         : `<button type="button" class="reset-button" data-auto title="${t('compare.resetTitle')}">${RESET_ICON}<span>${t('compare.reset')}</span></button>`;
       chips.innerHTML = references.length
         ? references.map((r, i) => `
-          <li class="object-chip" data-select="${i}">${dot(r.kind)}<span>${escapeHTML(r.name)}</span><small>${size(r, system, both)}</small>
+          <li class="object-chip" data-select="${i}" tabindex="0">${dot(r.kind)}<span>${escapeHTML(r.name)}</span><small>${size(r, system, both)}</small>
             <button type="button" data-remove="${i}" aria-label="${escapeHTML(t('compare.removeName', { name: r.name }))}" title="${t('compare.remove')}">×</button></li>`).join('')
         : `<li class="muted">${t('compare.none')}</li>`;
 

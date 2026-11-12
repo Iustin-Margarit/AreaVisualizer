@@ -45,10 +45,11 @@
     const dark = theme === 'dark' || (theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
     document.documentElement.dataset.mode = dark ? 'dark' : 'light';
     // The opening splash (.intro-splash): once per visit (a new tab, a followed link), never on a
-    // reload or going back, and not for people who prefer less motion.
+    // reload or going back, and not for people who prefer less motion. Not on the pages for one
+    // size (tools/pages.mjs) either: people come there from a search, for the answer.
     try {
       const fresh = performance.getEntriesByType('navigation')[0]?.type === 'navigate';
-      if (fresh && !sessionStorage.getItem('areavisualizer:intro') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      if (fresh && !document.documentElement.dataset.start && !sessionStorage.getItem('areavisualizer:intro') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
         document.documentElement.classList.add('intro');
         sessionStorage.setItem('areavisualizer:intro', '1');
       }
