@@ -161,7 +161,6 @@ export function initControls(form, store, arrange) {
 
   // Custom shapes: a ready-made one of the same area, edited in 2D, or one drawn by hand there.
   const customTools = $('custom-tools');
-  const sizeHint = $('size-hint');
   const startFrom = template => {
     const s = store.get();
     const { areaM2, dims } = resolveInput(s);
@@ -301,7 +300,6 @@ export function initControls(form, store, arrange) {
 
     length.hidden = times.hidden = circle;
     customTools.hidden = !custom;
-    sizeHint.hidden = custom;
     sidesLabel.textContent = t(circle ? 'sides.diameter' : 'sides.label');
     width.setAttribute('aria-label', t(circle ? 'sides.diameter' : 'sides.width'));
     shapePicker.querySelectorAll('[data-shape]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.shape === s.shape)));

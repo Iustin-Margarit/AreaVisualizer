@@ -158,8 +158,9 @@
           <p class="alt-line" id="area-alt" hidden></p>
         </div>
       </div>
-      <p class="field-hint" id="size-hint" data-i18n="size.hint">Type the dimensions to get the area — or the other way around.</p>
 
+      <!-- Height and a second area: side by side while they're only buttons, a row each once added. -->
+      <div class="extras">
       <div class="field height-field">
         <button type="button" id="add-height" class="add-button">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg><span data-i18n="height.add">Add height</span>
@@ -206,6 +207,7 @@
           <span class="second-area-unit"></span>
         </div>
         <p class="volume-line" id="second-result" aria-live="polite" hidden></p>
+      </div>
       </div>
 
       <details class="fold">
@@ -263,25 +265,29 @@
         <!-- The selected object: turn, resize, copy or remove it (ui/arrange.js). -->
         <aside id="arrange-panel" class="arrange" hidden>
           <div class="arrange-head">
-            <strong class="arrange-name"></strong>
-            <span class="arrange-status" aria-live="polite"></span>
-            <button type="button" class="arrange-close" data-do="close" data-i18n-attr="aria-label:arrange.close;title:arrange.close">×</button>
+            <!-- The object seen from above, turned as it is in the picture. -->
+            <span class="arrange-swatch" aria-hidden="true"><svg viewBox="-12 -12 24 24"><g class="arrange-footprint"><rect/><circle r="1.6"/></g></svg></span>
+            <div class="arrange-title">
+              <strong class="arrange-name"></strong>
+              <span class="arrange-dims"></span>
+              <span class="arrange-status" aria-live="polite"></span>
+            </div>
+            <button type="button" class="arrange-close" data-do="close" data-i18n-attr="aria-label:arrange.close;title:arrange.close"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"/></svg></button>
           </div>
-          <div class="arrange-row">
-            <button type="button" data-do="turn" data-i18n="arrange.turn">Turn 90°</button>
+          <div class="arrange-row arrange-turning">
+            <button type="button" class="arrange-turn" data-do="turn" data-i18n-attr="aria-label:arrange.turn;title:arrange.turn"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15.5 10a5.5 5.5 0 11-1.6-3.9"/><path d="M14.4 2.8v3.6h-3.6"/></svg>90°</button>
             <input class="arrange-angle" type="range" min="0" max="359" step="1" data-i18n-attr="aria-label:arrange.angle">
             <output class="arrange-degrees"></output>
           </div>
-          <div class="arrange-row">
-            <button type="button" data-do="size" data-i18n="size.title" aria-expanded="false">Size</button>
-            <button type="button" data-do="duplicate" data-i18n="arrange.duplicate">Duplicate</button>
-            <button type="button" data-do="remove" data-i18n="compare.remove">Remove</button>
+          <div class="arrange-row arrange-actions">
+            <button type="button" data-do="size" aria-expanded="false"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="6.5" width="15" height="7" rx="1.5"/><path d="M6 6.5v3M9 6.5v2M12 6.5v3M15 6.5v2"/></svg><span data-i18n="size.title">Size</span></button>
+            <button type="button" data-do="duplicate"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2"/></svg><span data-i18n="arrange.duplicate">Duplicate</span></button>
+            <button type="button" class="arrange-remove" data-do="remove"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 5.5h13M8 5.5V4a1 1 0 011-1h2a1 1 0 011 1v1.5M5.5 5.5l.7 10a1.5 1.5 0 001.5 1.5h4.6a1.5 1.5 0 001.5-1.5l.7-10"/></svg><span data-i18n="compare.remove">Remove</span></button>
           </div>
           <div class="arrange-sizes">
-            <label><span data-i18n="sides.width">Width</span><input name="w" inputmode="decimal" enterkeyhint="next" autocomplete="off"></label>
-            <label><span data-i18n="compare.depth">Depth</span><input name="d" inputmode="decimal" enterkeyhint="next" autocomplete="off"></label>
-            <label><span data-i18n="height.label">Height</span><input name="h" inputmode="decimal" enterkeyhint="done" autocomplete="off"></label>
-            <span class="arrange-unit"></span>
+            <label><span data-i18n="sides.width">Width</span><span class="arrange-field"><input name="w" inputmode="decimal" enterkeyhint="next" autocomplete="off"><span class="arrange-unit"></span></span></label>
+            <label><span data-i18n="compare.depth">Depth</span><span class="arrange-field"><input name="d" inputmode="decimal" enterkeyhint="next" autocomplete="off"><span class="arrange-unit"></span></span></label>
+            <label><span data-i18n="height.label">Height</span><span class="arrange-field"><input name="h" inputmode="decimal" enterkeyhint="done" autocomplete="off"><span class="arrange-unit"></span></span></label>
           </div>
         </aside>
         <!-- Saved areas, kept on this device (ui/areas.js). -->

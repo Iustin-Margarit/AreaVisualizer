@@ -1,7 +1,8 @@
 import { arrangedTokens, tokenFields, fitStatus, footprint, snapToEdges, tidy } from '../core/arrange.js';
 import { centerPolygon, crosses } from '../core/shapes.js';
 import { LENGTH_UNITS } from '../core/units.js';
-import { editableNumber, formatLengths, parseNumber } from '../core/format.js';
+import { editableNumber, formatLengths, formatNumber, parseNumber } from '../core/format.js';
+import { kindColor } from '../views/palette.js';
 import { t, unitSymbol } from '../i18n/index.js';
 
 export const MAX_OBJECTS = 30;
@@ -42,25 +43,49 @@ export function initArrange(panel, store, activeView) {
     });
   }
 
+  // The turn: the slider's filled part, the degrees and the footprint drawn turned that way.
+  function showTurn(r) {
+    angle.value = r;
+    panel.style.setProperty('--turn', `${(r / 359) * 100}%`);
+    $('.arrange-degrees').textContent = `${Math.round(r)}°`;
+    $('.arrange-footprint').setAttribute('transform', `rotate(${r})`);
+  }
+
+  // The footprint fits a 16-unit box, with a dot on its front edge so a square shows its turn too.
+  function showSwatch(object, target) {
+    const color = target === 'landmark' ? 'var(--landmark)' : target === 'second' ? 'var(--second)' : kindColor(object.kind);
+    panel.style.setProperty('--c', color);
+    const scale = 16 / Math.max(object.w, object.d);
+    const w = Math.max(3, object.w * scale);
+    const d = Math.max(3, object.d * scale);
+    const rect = $('.arrange-footprint rect');
+    for (const [name, value] of Object.entries({ x: -w / 2, y: -d / 2, width: w, height: d, rx: Math.min(w, d) * 0.18 })) {
+      rect.setAttribute(name, value.toFixed(2));
+    }
+    $('.arrange-footprint circle').setAttribute('cy', (-d / 2).toFixed(2));
+  }
+
   function showPanel() {
     panel.hidden = selected === null;
     if (selected === null) return;
     const object = item(selected);
     const place = isPlace(selected);
+    const unit = ctx.state.lengthUnit;
     $('.arrange-name').textContent = capitalize(object.name);
+    const lengths = [object.w, object.d, object.h].filter(m => m > 0);
+    $('.arrange-dims').textContent = `${lengths.map(m => formatNumber(m / LENGTH_UNITS[unit].toM)).join(' × ')} ${unitSymbol(unit)}`;
+    showSwatch(object, selected);
     showFit(fitOf(object, selected));
-    angle.value = object.r ?? 0;
-    $('.arrange-degrees').textContent = `${Math.round(object.r ?? 0)}°`;
+    showTurn(object.r ?? 0);
     $('.arrange-sizes').hidden = place || !sizesOpen;
     $('[data-do="size"]').setAttribute('aria-expanded', String(sizesOpen));
     for (const action of ['size', 'duplicate']) $(`[data-do="${action}"]`).hidden = place;
     if (place) return;
-    const unit = ctx.state.lengthUnit;
     sizes.forEach(input => {
       if (document.activeElement !== input) input.value = editableNumber(object[input.name] / LENGTH_UNITS[unit].toM, 4);
       input.removeAttribute('aria-invalid');
     });
-    $('.arrange-unit').textContent = unitSymbol(unit);
+    panel.querySelectorAll('.arrange-unit').forEach(el => { el.textContent = unitSymbol(unit); });
   }
 
   function save(target, change) {
@@ -117,7 +142,7 @@ export function initArrange(panel, store, activeView) {
   angle.addEventListener('input', () => {
     const r = Number(angle.value);
     activeView()?.poseObject?.(selected, { r });
-    $('.arrange-degrees').textContent = `${r}°`;
+    showTurn(r);
     showFit(fitOf({ ...item(selected), r }, selected));
   });
   angle.addEventListener('change', () => save(selected, { r: Number(angle.value) }));
