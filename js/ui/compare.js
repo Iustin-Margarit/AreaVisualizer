@@ -6,7 +6,6 @@ import { canDraw } from '../core/landmarks.js';
 import { LENGTH_UNITS, fromM2, naturalAreaUnit } from '../core/units.js';
 import { formatLengths, withUnit, escapeHTML, parseNumber, searchKey } from '../core/format.js';
 import { kindColor } from '../views/palette.js';
-import { coarsePointer } from '../views/stage-ui.js';
 import { bindPopover } from './popover.js';
 import { MAX_OBJECTS } from './arrange.js';
 import { t, unitSymbol, landmarkName } from '../i18n/index.js';
@@ -33,7 +32,6 @@ export function initCompare(el, store, { select }) {
       <span class="objects-mode"></span>
     </div>
     <ul class="object-chips"></ul>
-    <p class="hint" data-i18n="${coarsePointer() ? 'arrange.hintTouch' : 'arrange.hint'}"></p>
     <div class="add-object">
       <button type="button" class="add-button" aria-expanded="false" aria-controls="add-panel">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg><span data-i18n="compare.add"></span>
@@ -58,7 +56,6 @@ export function initCompare(el, store, { select }) {
       <summary class="label" data-i18n="compare.about"></summary>
       <div class="fold-body">
         <ul class="compare"></ul>
-        <p class="hint"></p>
         <div class="add-object">
           <button type="button" class="add-button places-button" aria-expanded="false" aria-controls="places-panel">
             <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10 10l3.5 3.5"/></svg><span data-i18n="places.open"></span>
@@ -167,7 +164,7 @@ export function initCompare(el, store, { select }) {
       const auto = state.objects === null;
 
       $('.objects-mode').innerHTML = auto
-        ? `<span class="muted">${t('compare.auto')}</span>`
+        ? ''
         : `<button type="button" class="reset-button" data-auto title="${t('compare.resetTitle')}">${RESET_ICON}<span>${t('compare.reset')}</span></button>`;
       chips.innerHTML = references.length
         ? references.map((r, i) => `
@@ -185,7 +182,6 @@ export function initCompare(el, store, { select }) {
         return `<li><button type="button" class="compare-item" data-landmark="${c.id}" aria-pressed="${pressed}"
           title="${t(pressed ? 'compare.hide' : 'compare.draw')}"><span>${describe(c)}</span>${DRAW_ICON}</button></li>`;
       }).join('') || `<li class="muted">${t('compare.nothing')}</li>`;
-      $('.fold-body .hint').textContent = t(drawn ? 'compare.hintDrawn' : 'compare.hintPick');
     },
   };
 }

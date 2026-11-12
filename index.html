@@ -17,6 +17,17 @@
   <!-- The live address: update these four lines (and sitemap.xml, robots.txt) if it changes. -->
   <link rel="canonical" href="https://areavisualizer.vercel.app/">
   <meta property="og:url" content="https://areavisualizer.vercel.app/">
+  <!-- pages:head — written by tools/pages.mjs: this page in the other languages -->
+  <link rel="alternate" hreflang="en" href="https://areavisualizer.vercel.app/">
+  <link rel="alternate" hreflang="es" href="https://areavisualizer.vercel.app/es">
+  <link rel="alternate" hreflang="de" href="https://areavisualizer.vercel.app/de">
+  <link rel="alternate" hreflang="fr" href="https://areavisualizer.vercel.app/fr">
+  <link rel="alternate" hreflang="it" href="https://areavisualizer.vercel.app/it">
+  <link rel="alternate" hreflang="pt" href="https://areavisualizer.vercel.app/pt">
+  <link rel="alternate" hreflang="ro" href="https://areavisualizer.vercel.app/ro">
+  <link rel="alternate" hreflang="ru" href="https://areavisualizer.vercel.app/ru">
+  <link rel="alternate" hreflang="x-default" href="https://areavisualizer.vercel.app/">
+  <!-- /pages:head -->
   <!-- Bump ?v= when og-image.png changes: chat apps cache the picture by its address. -->
   <meta property="og:image" content="https://areavisualizer.vercel.app/og-image.png?v=3">
   <meta property="og:image:type" content="image/png">
@@ -158,8 +169,9 @@
           <p class="alt-line" id="area-alt" hidden></p>
         </div>
       </div>
-      <p class="field-hint" id="size-hint" data-i18n="size.hint">Type the dimensions to get the area — or the other way around.</p>
 
+      <!-- Height and a second area: side by side while they're only buttons, a row each once added. -->
+      <div class="extras">
       <div class="field height-field">
         <button type="button" id="add-height" class="add-button">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg><span data-i18n="height.add">Add height</span>
@@ -206,6 +218,7 @@
           <span class="second-area-unit"></span>
         </div>
         <p class="volume-line" id="second-result" aria-live="polite" hidden></p>
+      </div>
       </div>
 
       <details class="fold">
@@ -263,25 +276,29 @@
         <!-- The selected object: turn, resize, copy or remove it (ui/arrange.js). -->
         <aside id="arrange-panel" class="arrange" hidden>
           <div class="arrange-head">
-            <strong class="arrange-name"></strong>
-            <span class="arrange-status" aria-live="polite"></span>
-            <button type="button" class="arrange-close" data-do="close" data-i18n-attr="aria-label:arrange.close;title:arrange.close">×</button>
+            <!-- The object seen from above, turned as it is in the picture. -->
+            <span class="arrange-swatch" aria-hidden="true"><svg viewBox="-12 -12 24 24"><g class="arrange-footprint"><rect/><circle r="1.6"/></g></svg></span>
+            <div class="arrange-title">
+              <strong class="arrange-name"></strong>
+              <span class="arrange-dims"></span>
+              <span class="arrange-status" aria-live="polite"></span>
+            </div>
+            <button type="button" class="arrange-close" data-do="close" data-i18n-attr="aria-label:arrange.close;title:arrange.close"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"/></svg></button>
           </div>
-          <div class="arrange-row">
-            <button type="button" data-do="turn" data-i18n="arrange.turn">Turn 90°</button>
+          <div class="arrange-row arrange-turning">
+            <button type="button" class="arrange-turn" data-do="turn" data-i18n-attr="aria-label:arrange.turn;title:arrange.turn"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15.5 10a5.5 5.5 0 11-1.6-3.9"/><path d="M14.4 2.8v3.6h-3.6"/></svg>90°</button>
             <input class="arrange-angle" type="range" min="0" max="359" step="1" data-i18n-attr="aria-label:arrange.angle">
             <output class="arrange-degrees"></output>
           </div>
-          <div class="arrange-row">
-            <button type="button" data-do="size" data-i18n="size.title" aria-expanded="false">Size</button>
-            <button type="button" data-do="duplicate" data-i18n="arrange.duplicate">Duplicate</button>
-            <button type="button" data-do="remove" data-i18n="compare.remove">Remove</button>
+          <div class="arrange-row arrange-actions">
+            <button type="button" data-do="size" aria-expanded="false"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="6.5" width="15" height="7" rx="1.5"/><path d="M6 6.5v3M9 6.5v2M12 6.5v3M15 6.5v2"/></svg><span data-i18n="size.title">Size</span></button>
+            <button type="button" data-do="duplicate"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M13 7V5a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2"/></svg><span data-i18n="arrange.duplicate">Duplicate</span></button>
+            <button type="button" class="arrange-remove" data-do="remove"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 5.5h13M8 5.5V4a1 1 0 011-1h2a1 1 0 011 1v1.5M5.5 5.5l.7 10a1.5 1.5 0 001.5 1.5h4.6a1.5 1.5 0 001.5-1.5l.7-10"/></svg><span data-i18n="compare.remove">Remove</span></button>
           </div>
           <div class="arrange-sizes">
-            <label><span data-i18n="sides.width">Width</span><input name="w" inputmode="decimal" enterkeyhint="next" autocomplete="off"></label>
-            <label><span data-i18n="compare.depth">Depth</span><input name="d" inputmode="decimal" enterkeyhint="next" autocomplete="off"></label>
-            <label><span data-i18n="height.label">Height</span><input name="h" inputmode="decimal" enterkeyhint="done" autocomplete="off"></label>
-            <span class="arrange-unit"></span>
+            <label><span data-i18n="sides.width">Width</span><span class="arrange-field"><input name="w" inputmode="decimal" enterkeyhint="next" autocomplete="off"><span class="arrange-unit"></span></span></label>
+            <label><span data-i18n="compare.depth">Depth</span><span class="arrange-field"><input name="d" inputmode="decimal" enterkeyhint="next" autocomplete="off"><span class="arrange-unit"></span></span></label>
+            <label><span data-i18n="height.label">Height</span><span class="arrange-field"><input name="h" inputmode="decimal" enterkeyhint="done" autocomplete="off"><span class="arrange-unit"></span></span></label>
           </div>
         </aside>
         <!-- Saved areas, kept on this device (ui/areas.js). -->
@@ -318,6 +335,10 @@
   </main>
 
   <footer class="footer">
+    <!-- pages:links — written by tools/pages.mjs: the pages for common sizes, in this language -->
+    <nav class="sizes" aria-label="Other sizes"><span>Other sizes:</span> <a href="10-m2">10 m²</a> <a href="20-m2">20 m²</a> <a href="30-m2">30 m²</a> <a href="50-m2">50 m²</a> <a href="100-m2">100 m²</a> <a href="200-m2">200 m²</a> <a href="500-m2">500 m²</a> <a href="1000-m2">1,000 m²</a> <a href="1-hectare">1 hectare</a> <a href="1-km2">1 km²</a> <a href="100-sq-ft">100 sq ft</a> <a href="200-sq-ft">200 sq ft</a> <a href="500-sq-ft">500 sq ft</a> <a href="1000-sq-ft">1,000 sq ft</a> <a href="2000-sq-ft">2,000 sq ft</a> <a href="1-acre">1 acre</a> <a href="5-acres">5 acres</a> <a href="10-acres">10 acres</a> <a href="1-square-mile">1 square mile</a></nav>
+    <!-- /pages:links -->
+    <p><a href="https://github.com/Iustin-Margarit/AreaVisualizer/issues" target="_blank" rel="noopener" data-i18n="footer.feedback">Suggest an improvement</a></p>
     <p data-i18n="footer.note">No sign-up, no tracking. Sizes of everyday objects are typical values; landmark outlines are scaled to their official areas.</p>
     <details id="credits">
       <summary data-i18n="footer.credits">Credits</summary>

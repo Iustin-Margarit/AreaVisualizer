@@ -1,7 +1,7 @@
 import { createStore, initialState } from './state.js';
 import { readUrl, writeUrl } from './url.js';
 import { loadPrefs, savePrefs, prefersImperial } from './prefs.js';
-import { fromM2, naturalAreaUnit } from './core/units.js';
+import { UNITS, fromM2, naturalAreaUnit } from './core/units.js';
 import { resolveInput } from './core/input.js';
 import { buildScene } from './core/scene.js';
 import { compare, describe } from './core/comparisons.js';
@@ -28,10 +28,26 @@ import { initFolds } from './ui/folds.js';
 import { toast } from './ui/toast.js';
 import { getView, availableViews } from './views/registry.js';
 
+// Pages made for one size or language (tools/pages.mjs) say so on <html>: data-lang, and
+// data-start for the size they open at. A link's own numbers still win.
+const page = document.documentElement.dataset;
 const store = createStore(initialState({
   imperial: prefersImperial(), lang: detectLanguage(), phone: matchMedia('(max-width: 620px)').matches,
-  prefs: loadPrefs(), url: readUrl(),
+  prefs: loadPrefs(), url: { ...readUrl(page.start ?? ''), ...(page.lang && { lang: page.lang }), ...readUrl() },
 }));
+
+// The page's own title and heading (what search engines show) stay while it shows the size it
+// opened at, in its language; after a change they follow what's shown.
+const own = { lang: page.lang ?? document.documentElement.lang, title: document.title, heading: document.querySelector('.page-title') };
+const ownHeading = own.heading.textContent;
+const start = page.start && readUrl(page.start);
+let ownArea = start ? start.value * UNITS[start.unit].toM2 : null;
+function showTitle(state, input) {
+  ownArea ??= input.areaM2;
+  const asOpened = state.lang === own.lang && Math.abs(input.areaM2 - ownArea) <= ownArea * 1e-3;
+  document.title = asOpened ? own.title : `${areaText(input.areaM2, input.areaUnit)} · AreaVisualizer`;
+  if (start) own.heading.textContent = asOpened ? ownHeading : t('tagline');
+}
 if (!availableViews().some(v => v.id === store.get().view)) store.set({ view: availableViews()[0].id });
 
 const stage = document.getElementById('stage');
@@ -131,7 +147,7 @@ async function render(state) {
   areas.update({ state, dims: input.dims, label: areaLabel });
   writeUrl(state);
   savePrefs(state);
-  document.title = `${areaText(input.areaM2, input.areaUnit)} · AreaVisualizer`;
+  showTitle(state, input);
 
   if (await showView(state.view) && store.get() === state) {
     // Re-frame the camera only when what's drawn changed — not for a setting or theme switch.

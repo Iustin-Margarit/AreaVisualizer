@@ -1,0 +1,388 @@
+{
+  "rewrites": [
+    {
+      "source": "/es",
+      "destination": "/pages/es.html"
+    },
+    {
+      "source": "/de",
+      "destination": "/pages/de.html"
+    },
+    {
+      "source": "/fr",
+      "destination": "/pages/fr.html"
+    },
+    {
+      "source": "/it",
+      "destination": "/pages/it.html"
+    },
+    {
+      "source": "/pt",
+      "destination": "/pages/pt.html"
+    },
+    {
+      "source": "/ro",
+      "destination": "/pages/ro.html"
+    },
+    {
+      "source": "/ru",
+      "destination": "/pages/ru.html"
+    },
+    {
+      "source": "/10-m2",
+      "destination": "/pages/10-m2.html"
+    },
+    {
+      "source": "/20-m2",
+      "destination": "/pages/20-m2.html"
+    },
+    {
+      "source": "/30-m2",
+      "destination": "/pages/30-m2.html"
+    },
+    {
+      "source": "/50-m2",
+      "destination": "/pages/50-m2.html"
+    },
+    {
+      "source": "/100-m2",
+      "destination": "/pages/100-m2.html"
+    },
+    {
+      "source": "/200-m2",
+      "destination": "/pages/200-m2.html"
+    },
+    {
+      "source": "/500-m2",
+      "destination": "/pages/500-m2.html"
+    },
+    {
+      "source": "/1000-m2",
+      "destination": "/pages/1000-m2.html"
+    },
+    {
+      "source": "/1-hectare",
+      "destination": "/pages/1-hectare.html"
+    },
+    {
+      "source": "/1-km2",
+      "destination": "/pages/1-km2.html"
+    },
+    {
+      "source": "/100-sq-ft",
+      "destination": "/pages/100-sq-ft.html"
+    },
+    {
+      "source": "/200-sq-ft",
+      "destination": "/pages/200-sq-ft.html"
+    },
+    {
+      "source": "/500-sq-ft",
+      "destination": "/pages/500-sq-ft.html"
+    },
+    {
+      "source": "/1000-sq-ft",
+      "destination": "/pages/1000-sq-ft.html"
+    },
+    {
+      "source": "/2000-sq-ft",
+      "destination": "/pages/2000-sq-ft.html"
+    },
+    {
+      "source": "/1-acre",
+      "destination": "/pages/1-acre.html"
+    },
+    {
+      "source": "/5-acres",
+      "destination": "/pages/5-acres.html"
+    },
+    {
+      "source": "/10-acres",
+      "destination": "/pages/10-acres.html"
+    },
+    {
+      "source": "/1-square-mile",
+      "destination": "/pages/1-square-mile.html"
+    },
+    {
+      "source": "/es-10-m2",
+      "destination": "/pages/es-10-m2.html"
+    },
+    {
+      "source": "/es-20-m2",
+      "destination": "/pages/es-20-m2.html"
+    },
+    {
+      "source": "/es-30-m2",
+      "destination": "/pages/es-30-m2.html"
+    },
+    {
+      "source": "/es-50-m2",
+      "destination": "/pages/es-50-m2.html"
+    },
+    {
+      "source": "/es-100-m2",
+      "destination": "/pages/es-100-m2.html"
+    },
+    {
+      "source": "/es-200-m2",
+      "destination": "/pages/es-200-m2.html"
+    },
+    {
+      "source": "/es-500-m2",
+      "destination": "/pages/es-500-m2.html"
+    },
+    {
+      "source": "/es-1000-m2",
+      "destination": "/pages/es-1000-m2.html"
+    },
+    {
+      "source": "/es-1-hectare",
+      "destination": "/pages/es-1-hectare.html"
+    },
+    {
+      "source": "/es-1-km2",
+      "destination": "/pages/es-1-km2.html"
+    },
+    {
+      "source": "/de-10-m2",
+      "destination": "/pages/de-10-m2.html"
+    },
+    {
+      "source": "/de-20-m2",
+      "destination": "/pages/de-20-m2.html"
+    },
+    {
+      "source": "/de-30-m2",
+      "destination": "/pages/de-30-m2.html"
+    },
+    {
+      "source": "/de-50-m2",
+      "destination": "/pages/de-50-m2.html"
+    },
+    {
+      "source": "/de-100-m2",
+      "destination": "/pages/de-100-m2.html"
+    },
+    {
+      "source": "/de-200-m2",
+      "destination": "/pages/de-200-m2.html"
+    },
+    {
+      "source": "/de-500-m2",
+      "destination": "/pages/de-500-m2.html"
+    },
+    {
+      "source": "/de-1000-m2",
+      "destination": "/pages/de-1000-m2.html"
+    },
+    {
+      "source": "/de-1-hectare",
+      "destination": "/pages/de-1-hectare.html"
+    },
+    {
+      "source": "/de-1-km2",
+      "destination": "/pages/de-1-km2.html"
+    },
+    {
+      "source": "/fr-10-m2",
+      "destination": "/pages/fr-10-m2.html"
+    },
+    {
+      "source": "/fr-20-m2",
+      "destination": "/pages/fr-20-m2.html"
+    },
+    {
+      "source": "/fr-30-m2",
+      "destination": "/pages/fr-30-m2.html"
+    },
+    {
+      "source": "/fr-50-m2",
+      "destination": "/pages/fr-50-m2.html"
+    },
+    {
+      "source": "/fr-100-m2",
+      "destination": "/pages/fr-100-m2.html"
+    },
+    {
+      "source": "/fr-200-m2",
+      "destination": "/pages/fr-200-m2.html"
+    },
+    {
+      "source": "/fr-500-m2",
+      "destination": "/pages/fr-500-m2.html"
+    },
+    {
+      "source": "/fr-1000-m2",
+      "destination": "/pages/fr-1000-m2.html"
+    },
+    {
+      "source": "/fr-1-hectare",
+      "destination": "/pages/fr-1-hectare.html"
+    },
+    {
+      "source": "/fr-1-km2",
+      "destination": "/pages/fr-1-km2.html"
+    },
+    {
+      "source": "/it-10-m2",
+      "destination": "/pages/it-10-m2.html"
+    },
+    {
+      "source": "/it-20-m2",
+      "destination": "/pages/it-20-m2.html"
+    },
+    {
+      "source": "/it-30-m2",
+      "destination": "/pages/it-30-m2.html"
+    },
+    {
+      "source": "/it-50-m2",
+      "destination": "/pages/it-50-m2.html"
+    },
+    {
+      "source": "/it-100-m2",
+      "destination": "/pages/it-100-m2.html"
+    },
+    {
+      "source": "/it-200-m2",
+      "destination": "/pages/it-200-m2.html"
+    },
+    {
+      "source": "/it-500-m2",
+      "destination": "/pages/it-500-m2.html"
+    },
+    {
+      "source": "/it-1000-m2",
+      "destination": "/pages/it-1000-m2.html"
+    },
+    {
+      "source": "/it-1-hectare",
+      "destination": "/pages/it-1-hectare.html"
+    },
+    {
+      "source": "/it-1-km2",
+      "destination": "/pages/it-1-km2.html"
+    },
+    {
+      "source": "/pt-10-m2",
+      "destination": "/pages/pt-10-m2.html"
+    },
+    {
+      "source": "/pt-20-m2",
+      "destination": "/pages/pt-20-m2.html"
+    },
+    {
+      "source": "/pt-30-m2",
+      "destination": "/pages/pt-30-m2.html"
+    },
+    {
+      "source": "/pt-50-m2",
+      "destination": "/pages/pt-50-m2.html"
+    },
+    {
+      "source": "/pt-100-m2",
+      "destination": "/pages/pt-100-m2.html"
+    },
+    {
+      "source": "/pt-200-m2",
+      "destination": "/pages/pt-200-m2.html"
+    },
+    {
+      "source": "/pt-500-m2",
+      "destination": "/pages/pt-500-m2.html"
+    },
+    {
+      "source": "/pt-1000-m2",
+      "destination": "/pages/pt-1000-m2.html"
+    },
+    {
+      "source": "/pt-1-hectare",
+      "destination": "/pages/pt-1-hectare.html"
+    },
+    {
+      "source": "/pt-1-km2",
+      "destination": "/pages/pt-1-km2.html"
+    },
+    {
+      "source": "/ro-10-m2",
+      "destination": "/pages/ro-10-m2.html"
+    },
+    {
+      "source": "/ro-20-m2",
+      "destination": "/pages/ro-20-m2.html"
+    },
+    {
+      "source": "/ro-30-m2",
+      "destination": "/pages/ro-30-m2.html"
+    },
+    {
+      "source": "/ro-50-m2",
+      "destination": "/pages/ro-50-m2.html"
+    },
+    {
+      "source": "/ro-100-m2",
+      "destination": "/pages/ro-100-m2.html"
+    },
+    {
+      "source": "/ro-200-m2",
+      "destination": "/pages/ro-200-m2.html"
+    },
+    {
+      "source": "/ro-500-m2",
+      "destination": "/pages/ro-500-m2.html"
+    },
+    {
+      "source": "/ro-1000-m2",
+      "destination": "/pages/ro-1000-m2.html"
+    },
+    {
+      "source": "/ro-1-hectare",
+      "destination": "/pages/ro-1-hectare.html"
+    },
+    {
+      "source": "/ro-1-km2",
+      "destination": "/pages/ro-1-km2.html"
+    },
+    {
+      "source": "/ru-10-m2",
+      "destination": "/pages/ru-10-m2.html"
+    },
+    {
+      "source": "/ru-20-m2",
+      "destination": "/pages/ru-20-m2.html"
+    },
+    {
+      "source": "/ru-30-m2",
+      "destination": "/pages/ru-30-m2.html"
+    },
+    {
+      "source": "/ru-50-m2",
+      "destination": "/pages/ru-50-m2.html"
+    },
+    {
+      "source": "/ru-100-m2",
+      "destination": "/pages/ru-100-m2.html"
+    },
+    {
+      "source": "/ru-200-m2",
+      "destination": "/pages/ru-200-m2.html"
+    },
+    {
+      "source": "/ru-500-m2",
+      "destination": "/pages/ru-500-m2.html"
+    },
+    {
+      "source": "/ru-1000-m2",
+      "destination": "/pages/ru-1000-m2.html"
+    },
+    {
+      "source": "/ru-1-hectare",
+      "destination": "/pages/ru-1-hectare.html"
+    },
+    {
+      "source": "/ru-1-km2",
+      "destination": "/pages/ru-1-km2.html"
+    }
+  ]
+}
