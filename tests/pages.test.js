@@ -4,10 +4,13 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { buildPages } from '../tools/pages.mjs';
 
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8').replaceAll('\r\n', '\n');
+// Node versions group digits a little differently (Italian 1000 or 1.000), so marks between
+// digits don't count.
+const digits = text => text.replace(/(?<=\d)[.,   ](?=\d)/g, '');
 
 test('the size and language pages are up to date with index.html (node tools/pages.mjs)', () => {
   const files = buildPages();
-  for (const [path, text] of Object.entries(files)) assert.equal(read(path), text, `${path} is out of date — run node tools/pages.mjs`);
+  for (const [path, text] of Object.entries(files)) assert.equal(digits(read(path)), digits(text), `${path} is out of date — run node tools/pages.mjs`);
   const pages = readdirSync(new URL('../pages', import.meta.url)).map(name => `pages/${name}`);
   assert.deepEqual(pages.sort(), Object.keys(files).filter(f => f.startsWith('pages/')).sort(), 'pages/ has files the script no longer makes');
 });
